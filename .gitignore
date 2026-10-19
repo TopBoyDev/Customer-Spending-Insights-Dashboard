@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-server/
+coverage/
+playwright-report/
+test-results/
+blob-report/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
