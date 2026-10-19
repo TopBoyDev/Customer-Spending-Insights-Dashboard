@@ -43,29 +43,33 @@ function CategoryDonut({ data }: { data: SpendingByCategory }) {
       aria-label={chartSummary(data)}
       sx={{ position: 'relative', width: '100%', maxWidth: 240, height: 220, mx: 'auto' }}
     >
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={data.categories}
-            dataKey="amount"
-            nameKey="name"
-            innerRadius="64%"
-            outerRadius="96%"
-            paddingAngle={1.5}
-            stroke="#FFFFFF"
-            strokeWidth={2}
-            isAnimationActive={!reduceMotion}
-          >
-            {data.categories.map((category) => (
-              <Cell key={category.name} fill={category.color} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value: number, name: string) => [formatCurrency(value), name]}
-            contentStyle={{ borderRadius: 8 }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      {/* The labelled wrapper and the category list are the accessible equivalent. */}
+      <Box aria-hidden sx={{ width: '100%', height: '100%' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data.categories}
+              dataKey="amount"
+              nameKey="name"
+              innerRadius="64%"
+              outerRadius="96%"
+              paddingAngle={1.5}
+              stroke="#FFFFFF"
+              strokeWidth={2}
+              isAnimationActive={!reduceMotion}
+              rootTabIndex={-1}
+            >
+              {data.categories.map((category) => (
+                <Cell key={category.name} fill={category.color} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value: number, name: string) => [formatCurrency(value), name]}
+              contentStyle={{ borderRadius: 8 }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </Box>
       <Stack
         aria-hidden
         sx={{
