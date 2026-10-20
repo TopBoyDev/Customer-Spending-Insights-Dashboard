@@ -1,10 +1,10 @@
 # Customer Spending Insights Dashboard
 
-A responsive dashboard that helps a banking customer understand **how much they spend, where it goes, how it changes over time and whether they are staying within their monthly budgets**.
+My submission for the Software Engineer: UX Developer take-home. It's a responsive dashboard that helps a banking customer answer four questions quickly: **how much did I spend, where did it go, how is it changing, and am I within my budgets?**
 
-Built with **React 18, TypeScript (strict), Material UI, TanStack Query and Recharts**, backed by a **TypeScript Express mock API** that implements every endpoint in the supplied contract ([docs/api-contract.md](docs/api-contract.md)). One Docker container serves both the UI and the API.
+I built the front end in **React 18 and strict TypeScript** with **Material UI**, **TanStack Query** and **Recharts**. Behind it is a **TypeScript Express mock API** that implements every endpoint in the brief's contract ([docs/api-contract.md](docs/api-contract.md)). A single Docker container serves both.
 
-> **Take-home assessment (Software Engineer: UX Developer).** This is a concept demonstration, not an official banking product. The customer, merchants and transactions are fictional and generated deterministically.
+> This is a concept demonstration for an assessment, not an official banking product. The customer, merchants and transactions are fictional and generated deterministically.
 
 <img src="docs/screenshots/desktop-overview.png" alt="Overview tab on a desktop screen: total spent, category split, monthly budgets, monthly trend and recent transactions" width="820">
 
@@ -16,171 +16,182 @@ Built with **React 18, TypeScript (strict), Material UI, TanStack Query and Rech
 
 ---
 
-## Quick start
+## Running it
 
-### With Docker (recommended for reviewers)
+### With Docker (quickest)
 
 ```bash
 docker build -t spending-insights .
 docker run --rm -p 3000:3000 spending-insights
 ```
 
-Open <http://localhost:3000>. The API is served from the same container, for example:
+Then open <http://localhost:3000>. The API is on the same origin, for example:
 
 ```bash
 curl "http://localhost:3000/api/customers/12345/spending/summary?period=30d"
 ```
 
-The image is a multi-stage build. The runtime stage holds only the compiled UI and one bundled server file (no `node_modules`), runs as the non-root `node` user, and has a `HEALTHCHECK` against `/api/health`.
+I kept the image small and locked down. It's a multi-stage build, and the final stage contains only the compiled UI and a single bundled server file (no `node_modules`). It runs as the non-root `node` user and has a health check on `/api/health`.
 
 ### Locally
 
-Requirements: **Node.js 20.19+** (22 LTS recommended; see `.nvmrc`) and npm.
+You'll need **Node.js 20.19+** (I used 22 LTS; see `.nvmrc`) and npm.
 
 ```bash
 npm ci
-npm run dev        # UI on http://localhost:5173, mock API on http://localhost:3001 (proxied under /api)
+npm run dev        # UI on http://localhost:5173, API on http://localhost:3001 (proxied under /api)
 ```
 
-Production build, run locally:
+To run the production build locally:
 
 ```bash
 npm run build      # dist/ (React) + dist-server/index.cjs (Express)
 npm start          # serves both on http://localhost:3000
 ```
 
-### Troubleshooting
+### If something doesn't start
 
-| Symptom                                                                                                  | Fix                                                                                                                                                                                                                                                                                                                                   |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Port 3000 is already in use                                                                              | Map another host port: `docker run --rm -p 8080:3000 spending-insights` and open <http://localhost:8080>. Locally: `PORT=8080 npm start` (PowerShell: `$env:PORT=8080; npm start`).                                                                                                                                                   |
-| `localhost:3000` refuses to connect, but the container logs `listening on` and `/api/health` returns 200 | Usually Docker Engine running inside WSL without Docker Desktop, where WSL's localhost forwarding can stop working. Either open the WSL address (`wsl hostname -I`, then `http://<that-ip>:3000`) or enable mirrored networking: add `[wsl2]` and `networkingMode=mirrored` to `%USERPROFILE%\.wslconfig`, then run `wsl --shutdown`. |
-| `docker build` fails during `npm ci` with `ETIMEDOUT` or `ECONNRESET`                                    | A slow or unstable network. The Dockerfile already retries and caches downloads, so re-running `docker build` resumes rather than starting over. Behind a corporate proxy, pass it as build arguments: `docker build --build-arg HTTPS_PROXY=http://proxy:port -t spending-insights .`                                                |
-| `permission denied ... /var/run/docker.sock` on Linux/WSL                                                | Prefix the commands with `sudo`, or add your user to the `docker` group (`sudo usermod -aG docker $USER`) and open a new shell.                                                                                                                                                                                                       |
-| The page loads but sections show "could not be loaded"                                                   | Check the API directly: `curl http://localhost:3000/api/health`. If you are using `npm run dev`, both the API (port 3001) and Vite (port 5173) must be running; `npm run dev` starts both.                                                                                                                                            |
-
-## Testing and quality checks
-
-| Command                      | What it runs                                                                                                                                           |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `npm run typecheck`          | `tsc -b` across the UI, server, shared and test projects (strict mode, `noUncheckedIndexedAccess`)                                                     |
-| `npm run lint`               | ESLint, including `typescript-eslint`, React Hooks and `jsx-a11y`; zero warnings allowed                                                               |
-| `npm run format:check`       | Prettier                                                                                                                                               |
-| `npm test`                   | Vitest: unit, API (Supertest) and component (React Testing Library) tests                                                                              |
-| `npm run test:coverage`      | The same, with V8 coverage                                                                                                                             |
-| `npm run test:e2e`           | Playwright against the production build, on desktop (1440 px) and mobile (Pixel 7) Chromium                                                            |
-| `npm run verify`             | typecheck, lint, format, test and build in one go                                                                                                      |
-| `npm run test:lighthouse`    | Lighthouse CI against the production build: performance, accessibility, best-practice and size budgets                                                 |
-| `npm run test:visual:docker` | Visual regression: screenshots of every view (light/dark, desktop/mobile) compared with committed baselines, inside the pinned Playwright Docker image |
-| `npm run test:visual:update` | Regenerates the visual baselines (same Docker image) after an intentional UI change                                                                    |
-
-The first time you run end-to-end tests, install the browser with `npx playwright install chromium`. `test:e2e` builds the app and starts the production server itself. Set `E2E_SKIP_BUILD=1` if you have already run `npm run build`.
-
-`test:lighthouse` needs a local Chrome (set `CHROME_PATH` to Playwright's Chromium if Chrome is not installed) and writes HTML reports to `.lighthouseci/`. The visual suite runs only inside `mcr.microsoft.com/playwright:v1.64.1-noble` because font rendering differs between operating systems; the scripts mount the repository and keep the container's Linux `node_modules` separate from yours.
-
-**What is covered**
-
-- **Unit:** date boundaries in Africa/Johannesburg (including UTC instants that fall on the next local day), leap years, equal-length previous periods, percentage change with a zero denominator, rounding (`1.005 → 1.01`), category tie-breaking, zero-spend months, goal thresholds (79.99 / 80 / 100 / 100.01 %), stable sorting, pagination without gaps or duplicates, URL-filter parsing and fallbacks, currency/percentage/date formatting, and trend insights.
-- **Data consistency:** for every period, summary total = category total = transaction count, percentages sum to about 100 %, and the dataset is identical on every generation.
-- **API:** every endpoint's response shape, defaults, filtering, sorting and pagination; 400s for each invalid parameter; 404s for unknown customers and routes; no stack traces leaked; `Cache-Control: no-store` and security headers.
-- **Components:** loading, success, error with retry (which really re-requests), and empty states; labelled filter controls; category rows; accessible goal progress; one failing endpoint not breaking other cards; tab navigation updating URL, title and focus; and category selection opening filtered transactions. Tests render against the real mock API on an ephemeral port, with per-test overrides for failures.
-- **End-to-end:** first load with no console errors; every tab reachable from the navigation, with back-button support; Overview cards open their tabs; period change updates figures and URL across tabs; category → filtered transactions → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; **no horizontal scroll and an axe-core WCAG 2.2 AA scan with zero serious/critical violations on every tab**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow through the sidebar menu; dark mode toggling, persistence and the WCAG scan in dark mode; and a real browser error being delivered to `/api/client-errors` through the Content Security Policy.
-- **Visual regression:** 12 screenshots per device profile (every view in light and dark, a filtered transaction list and an error state) on desktop and mobile, compared at a 0.2 % pixel tolerance.
-- **Lighthouse budgets** (median of three runs, Lighthouse's default mobile profile: slow 4G, 4× CPU slowdown): accessibility 100 and best practices ≥ 95 on every audited page; performance ≥ 70; LCP ≤ 4 s; TBT ≤ 650 ms; CLS ≤ 0.1; ≤ 320 kB of compressed JavaScript; no third-party requests. Measured at the time of writing: performance 82 (Overview), 91 (Transactions) and 82 (Trends).
-
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above on every push and pull request (Lighthouse and visual regression as separate jobs that upload their reports), then builds the Docker image and smoke-tests the running container.
+| Symptom                                                                                                  | What to do                                                                                                                                                                                                                                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Port 3000 is already in use                                                                              | Map another host port: `docker run --rm -p 8080:3000 spending-insights` and open <http://localhost:8080>. Locally: `PORT=8080 npm start` (PowerShell: `$env:PORT=8080; npm start`).                                                                                                                                                                  |
+| `localhost:3000` refuses to connect, but the container logs `listening on` and `/api/health` returns 200 | I hit this myself with Docker Engine running inside WSL (no Docker Desktop): WSL's localhost forwarding can stop working. Open the WSL address instead (`wsl hostname -I`, then `http://<that-ip>:3000`), or enable mirrored networking by adding `[wsl2]` and `networkingMode=mirrored` to `%USERPROFILE%\.wslconfig` and running `wsl --shutdown`. |
+| `docker build` fails during `npm ci` with `ETIMEDOUT` or `ECONNRESET`                                    | A slow or unstable network. I made the install step retry and cache downloads, so re-running `docker build` picks up where it left off. Behind a corporate proxy: `docker build --build-arg HTTPS_PROXY=http://proxy:port -t spending-insights .`                                                                                                    |
+| `permission denied ... /var/run/docker.sock` on Linux/WSL                                                | Prefix the commands with `sudo`, or add your user to the `docker` group (`sudo usermod -aG docker $USER`) and open a new shell.                                                                                                                                                                                                                      |
+| The page loads but sections say "could not be loaded"                                                    | Check the API directly: `curl http://localhost:3000/api/health`. With `npm run dev`, both the API (3001) and Vite (5173) need to be running; `npm run dev` starts both.                                                                                                                                                                              |
 
 ---
 
-## Features
+## How I approached it
 
-The app is organised like a modern banking app: an **Overview** dashboard plus four focused tabs (**Categories, Trends, Transactions, Budgets**). Each Overview card summarises one area and links to its tab, so you see the headline numbers at a glance and open the detail only when you want it. On desktop the sections are a floating sidebar menu; on phones they become a bottom tab bar.
+I treated the brief as a real product rather than a set of endpoints to wire up. Before designing anything, I asked what a customer actually needs from this screen. The answer is one clear number (what I spent), then the context to understand it. That shaped everything else:
 
-- **Overview.** Total spent for the selected period as the hero figure, with a neutral comparison to the previous equal-length period, plus transaction count, average transaction and top category. Below it: where the money went (one proportion bar and a legend), monthly budgets at a glance, a six-month mini trend and the five most recent transactions.
-- **Global period filter** (7 days / 30 days / 90 days / 1 year) shared by Overview, Categories and Transactions, so the numbers always describe the same date range.
-- **Categories.** A donut chart with the total, and a breakdown listing each category's amount, share and transaction count. Selecting a category opens the Transactions tab filtered to it.
-- **Trends** (6 / 12 / 24 months), independent of the period filter. Stat cards for the monthly average and highest/lowest month; a bar chart where the in-progress month is drawn lighter and excluded from the average; plain-language takeaways and a toggleable data table, so the insight never depends on reading the chart or hovering.
-- **Transactions.** Category filter, four sort orders and pagination. A semantic table on desktop; day-grouped cards on mobile, which are not grouped when sorting by amount. An announced "Showing 11–20 of 132" status. The current page stays visible while the next one loads.
-- **Budgets.** Month-to-date totals, then one card per budget with "On track" / "Nearing limit" / "Over budget" in words, progress, and a suggested daily allowance for the rest of the month ("R 886,27 left · about R 73,86 a day").
-- **Shareable, app-like navigation.** The active tab and every filter are kept in the URL (`?view=transactions&period=90d&category=Groceries&sortBy=amount_desc&page=2`). Refresh restores the view, the browser back button moves between tabs, and each tab is a real link (it can be opened in a new browser tab). Invalid values fall back safely.
-- **Resilient cards.** Each card has its own skeleton, error-with-retry and empty state. A failing endpoint never blanks the rest of the page. An error boundary catches unexpected rendering failures.
+- **One question per screen.** The **Overview** gives the headline numbers at a glance, and four focused sections (**Categories, Trends, Transactions, Budgets**) hold the detail. Each Overview card links to its section, so you only dig in when you want to. On desktop that's a sidebar; on phones, a bottom tab bar, like a banking app.
+- **Numbers you can trust.** The example payloads in the brief don't agree with each other: the category counts add up to 53 while the summary says 47. So instead of hard-coding them, I generate one seeded ledger of about 1,000 transactions and compute every response from it. Totals then agree everywhere you look.
+- **Honest, neutral language.** "3,8% more than the previous 30 days", always with the basis spelled out. I deliberately don't colour increases red: spending more isn't automatically bad, and a bank shouldn't imply it is.
+- **Restraint over decoration.** Capitec blue is the only accent. It's used boldly on the sidebar, the total-spent card and the selected period, so the eye lands there first. Everything else is white and grey, and category colours only appear as small dots and chart marks.
 
-## Visual design
+## What's in it
 
-- **Depth instead of lines.** Cards have no borders; they sit on a cool grey canvas with soft layered shadows, a 20px radius and the same 24px inner padding everywhere. Grid gaps are 24px on desktop.
-- **Contrast that guides the eye.** Capitec blue (`#004973`) is used sparingly but boldly: the floating sidebar (blue header on phones), the total-spent hero card and the selected period. Everything else is white or grey, so the blue surfaces read first.
-- **One accent.** Charts use a blue gradient; budget progress is blue, turning red only when a budget is exceeded. Category colours (from the API contract) appear only as small dots, chart slices and proportion bars, always next to the category name. Status is a small dot plus words.
-- **Modern controls.** Pill-shaped filter selects with an icon and no floating label (the accessible name is still provided), a segmented period picker, and "View all" links in card headers.
-- **Typography.** Self-hosted Inter, tabular numerals so amounts line up, and minimal copy: labels and numbers rather than explanatory sentences.
-- **Light and dark modes.** Light is the default; the choice (sidebar switch on desktop, header button on phones) is remembered on the device. Each mode has its own palette exposed as CSS custom properties, so one switch re-themes every surface; charts read concrete colours for SVG. Both modes pass the automated WCAG 2.2 AA scan on every screen.
-- **Navigation chrome.** A floating brand-blue sidebar with a light/dark switch and a profile card with a gradient initials avatar chosen from the customer's name. On phones: a brand header and a floating, blurred tab bar where the active tab gets a pill indicator.
-- **Tooltips where they add information**, not decoration: the full sentence behind a change badge, what each budget status means, the figures behind each proportion-bar segment, the meaning of the demo data date, and labels for icon-only buttons. Every tooltip target is keyboard-focusable or duplicates text that is already accessible.
+- **Overview:** total spent for the period (the hero), the change against the previous equal-length period, transaction count, average transaction and top category. Below that: where the money went, monthly budgets at a glance, a six-month mini trend, and the latest transactions.
+- **One period filter** (7 days, 30 days, 90 days, 1 year) shared by Overview, Categories and Transactions, so every number describes the same date range.
+- **Categories:** a donut chart plus a breakdown of amount, share and transaction count. Choosing a category opens Transactions filtered to it.
+- **Trends** (6, 12 or 24 months): monthly average, highest and lowest month, and a bar chart where the in-progress month is drawn lighter and left out of the average. A data table toggle means the information never depends on reading the chart.
+- **Transactions:** category filter, four sort orders and pagination. On desktop it's a proper table. On phones, it's cards grouped by day when sorted by date, and a flat list with the date on each row when sorted by amount. The current page stays visible while the next one loads.
+- **Budgets:** month-to-date totals, then a card per budget with its status in words ("On track", "Nearing limit", "Over budget") and a practical nudge: "R 886,27 left · about R 73,86 a day".
+- **Everything lives in the URL** (`?view=transactions&period=90d&category=Groceries&sortBy=amount_desc&page=2`). Refresh keeps your place, the back button moves between sections, and any view can be bookmarked or shared. Invalid values fall back safely.
+- **Light and dark mode.** Light is the default, and your choice is remembered on the device.
+- **Failure handled per card.** Each card has its own loading skeleton, error with retry, and empty state. One failing endpoint never blanks the rest of the page.
+
+## Design decisions
+
+- **Depth instead of lines.** Cards have no borders; they float on soft shadows with a 20px radius, 24px of padding and 24px gaps throughout.
+- **Modern controls.** Pill-shaped filters with an icon (with a hidden label for screen readers), a segmented period picker, compact change badges, and "View all" links in card headers.
+- **Stat cards share one layout:** label and icon, value, then a footer pinned to the bottom, so cards in a row always line up.
+- **Self-hosted Inter with tabular numerals**, so amounts align in columns and no request goes to a third party.
+- **Tooltips only where they add information:** the full sentence behind a change badge, what a budget status means, the figures behind each bar segment, and labels for icon-only buttons.
+- **Theming through CSS custom properties.** Each mode has its own palette, so switching re-themes every surface at once. Charts read concrete colours, because SVG attributes can't use CSS variables.
+
+## Accessibility
+
+I wanted this to work for everyone, not just pass a checklist:
+
+- Usable from 360 px to 1440 px with no horizontal scrolling.
+- Changing section behaves like changing page: the title updates, the view scrolls to the top, and focus moves to the new heading.
+- Semantic landmarks and headings, a skip link, visible focus rings, labelled controls, and announced loading and result counts.
+- Charts have text equivalents (a summary on the donut, takeaways and a data table on the trend). Status is always written in words, never shown by colour alone.
+- `prefers-reduced-motion` turns off chart and UI animation.
+- Automated WCAG 2.2 AA checks (axe) run on every section in both light and dark mode, and Lighthouse scores accessibility at 100.
 
 ## Architecture
 
 ```text
-├── shared/                 Contract types, category metadata and calendar-date helpers used by both sides
+├── shared/            Contract types, category metadata and calendar-date helpers used by UI and API
 ├── server/
-│   ├── data/               Seeded PRNG, deterministic ledger generator, fictional customer and budgets
-│   ├── utils/              Pure functions: periods, aggregation, % change, goals, sorting, pagination, rounding
-│   ├── services/           insights-service: derives every endpoint response from one ledger + reference date
-│   ├── routes/             Thin Express handlers: validate (Zod) → call service → JSON; client error intake
-│   ├── validation.ts       Query-parameter schemas with readable messages
-│   ├── app.ts              Security headers, compression, /api router, static files + SPA fallback
-│   └── index.ts            Config, listen, graceful shutdown
+│   ├── data/          Seeded random generator, deterministic ledger, fictional customer and budgets
+│   ├── utils/         Pure functions: periods, aggregation, % change, goals, sorting, pagination, rounding
+│   ├── services/      insights-service: derives every response from one ledger and a reference date
+│   ├── routes/        Thin handlers: validate (Zod) → call the service → JSON; client error intake
+│   ├── validation.ts  Query-parameter schemas with readable error messages
+│   ├── app.ts         Security headers, compression, /api router, static files and SPA fallback
+│   └── index.ts       Config, listen, graceful shutdown
 ├── src/
-│   ├── views/              One component per tab (code-split except Overview)
-│   ├── i18n/               Typed English message catalogue, plural helper, provider and locale
-│   ├── components/         layout/ (app shell: sidebar, mobile bars, page header), overview/ (summary cards), transactions/, states/, common/
-│   ├── navigation.ts       Tab definitions
-│   ├── hooks/              useDashboardFilters (tab + filter URL state), useInsightsQueries (TanStack Query)
-│   ├── services/           Typed fetch client with ApiError; QueryClient defaults; error reporter
-│   ├── theme/              Design tokens and MUI theme
-│   └── utils/              Formatting (en-ZA, ZAR, Africa/Johannesburg), insight copy, accessibility helpers
-├── tests/                  unit/, api/, components/, e2e/, visual/ (+ committed baselines), fixtures/
+│   ├── views/         One component per section (all except Overview are code-split)
+│   ├── components/    Layout (sidebar, mobile bars), overview cards, transactions, shared states
+│   ├── hooks/         URL-backed filter state; TanStack Query hooks
+│   ├── services/      Typed API client, query defaults, error reporter
+│   ├── i18n/          Typed English message catalogue, plural helper, provider
+│   ├── theme/         Design tokens, light and dark palettes, MUI theme
+│   └── utils/         en-ZA / ZAR / Africa/Johannesburg formatting, insight copy, accessibility helpers
+├── tests/             unit, api, components, e2e, visual (with baselines), fixtures
 └── Dockerfile, .github/workflows/ci.yml
 ```
 
-**Key decisions**
+### Why I built it this way
 
-- **One source of truth.** The contract's example payloads are illustrative and not mutually consistent (for example, the category counts add up to 53 while the summary says 47). Rather than hard-coding them, the server generates one seeded ledger of about 1,000 transactions from July 2024 to the demo date and computes every response from it. That guarantees totals agree across endpoints.
-- **Money in integer cents** on the server, converted to Rand only at the response boundary, so sums never drift.
-- **A frozen demo clock.** The data runs to **19 October 2026** (`DEMO_REFERENCE_DATE` overrides it). Screenshots, numbers and tests are therefore reproducible, and the UI shows "Demo data to 19 Oct 2026".
-- **Timezone-correct calendar logic.** Transactions are stored as UTC instants. All filtering and grouping uses the Africa/Johannesburg calendar date (for example, a delivery at 00:30 SAST counts on that local day, not the previous UTC day).
-- **Server-side calculations.** The browser never downloads the whole ledger to compute four metrics. The UI only formats data and decides how to present it.
-- **Service/handler separation.** Route handlers are a few lines each. To use a real upstream API, swap `insights-service` for an HTTP client with the same interface; the routes and UI stay unchanged.
-- **No global client store.** TanStack Query owns server state, with query keys that include every parameter (so fast filter changes can never mix responses). The URL owns filter state, and React state handles the rest. Redux would add nothing here.
-- **Retry policy.** Network and 5xx errors retry with backoff; 4xx errors do not.
-- **Vendor-neutral error reporting.** The error boundary and global `error`/`unhandledrejection` handlers send reports (via `sendBeacon`, falling back to `fetch` with `keepalive`) to `POST /api/client-errors`, which validates them, limits body size and rate per client, and writes one structured JSON log line. Reports are de-duplicated and capped per page load. Keeping reporting first-party means no third-party account and a strict CSP; a hosted service such as Sentry could be added behind `reportError()` without touching call sites.
-- **Internationalisation.** All copy lives in `src/i18n/en.ts`. Interpolated messages are typed functions, so a new locale must provide every message with the same parameters, enforced by the compiler. Plurals use `Intl.PluralRules`, and numbers, currency and dates share one locale constant. Only English ships; category names are API data and are shown as received.
-- **Performance.** The four detail views and every chart are code-split, so the chart library is not on the Overview's critical path; `index.html` paints a branded shell before any JavaScript runs. The remaining main-thread cost is React and MUI's runtime styling on first render; a zero-runtime CSS approach would be the next step if budgets needed tightening.
+- **Calculations stay on the server.** The browser never downloads the whole ledger to work out four numbers; the UI only formats data and decides how to show it.
+- **Thin route handlers.** Each handler validates input, calls the service and returns JSON. To switch to a real upstream API, I'd replace `insights-service` with an HTTP client that has the same interface; the routes and UI wouldn't change.
+- **Money in integer cents**, converted to Rand only at the response boundary, so totals never drift.
+- **Timezone-correct dates.** Transactions are stored as UTC instants but filtered and grouped by the Africa/Johannesburg calendar day. A food delivery at 00:30 SAST counts on that local day, not the previous UTC one.
+- **A frozen demo clock.** The data runs to **19 October 2026** (override with `DEMO_REFERENCE_DATE`), so screenshots, numbers and tests are reproducible.
+- **No global store.** TanStack Query owns server state, with query keys that include every parameter, so quick filter changes can't mix up responses. The URL owns filter state. Redux wouldn't add anything here.
+- **Sensible retries.** Network and 5xx errors retry with backoff; 4xx errors don't, because retrying an invalid request won't help.
+- **Vendor-neutral error reporting.** The error boundary and global error handlers send reports to `POST /api/client-errors`. The server validates them, limits size and rate per client, and logs a structured JSON line. I kept it first-party so there's no third-party account and the Content Security Policy stays strict. A hosted service like Sentry could sit behind `reportError()` without touching any call sites.
+- **Internationalisation-ready.** All copy lives in `src/i18n/en.ts`. Messages that take values are typed functions, so a new language has to provide every message with the right parameters, and the compiler checks it. Plurals use `Intl.PluralRules`. Only English ships today.
+- **Performance.** The detail sections and every chart are code-split, which keeps the chart library off the Overview's critical path. `index.html` also paints a branded loading screen before any JavaScript runs.
 
-### API contract extensions
+### Where I extended the contract
 
-All seven contract endpoints keep their documented shapes. Where the contract was silent, these additions are documented here rather than made silently:
+All seven endpoints keep the shapes in the brief. Where the contract was silent, I made these additions and documented them rather than changing things quietly:
 
-| Change                                                                                                              | Why                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /transactions?period=7d\|30d\|90d\|1y` (optional, mutually exclusive with `startDate`/`endDate`)               | Lets the transaction list use exactly the same server-resolved range as the summary, without the client re-implementing date logic |
-| `spentChange` / `transactionChange` may be `null`                                                                   | The previous period had nothing to compare with; the UI says so instead of showing `Infinity%`                                     |
-| `topCategory` may be `null`                                                                                         | No spending in the period                                                                                                          |
-| Goal `status` adds `exceeded` (> 100 %) alongside `on_track` (< 80 %) and `warning` (80–100 %)                      | A budget can be overspent                                                                                                          |
-| `category` filter is case-insensitive; unknown categories return 400                                                | Friendlier input, explicit errors                                                                                                  |
-| `GET /api/health`, `GET /api/meta` (`dataAsOf`, `timezone`, `currency`)                                             | Container health check; lets the UI label the demo date and the in-progress month                                                  |
-| Errors: `{ "error": { "code", "message", "details?": [{ "field", "message" }] } }` with 400 / 404 / 413 / 429 / 500 | Consistent, safe error bodies                                                                                                      |
-| `POST /api/client-errors` (202, no body)                                                                            | Receives browser error reports; validated, 16 kB limit, rate-limited per client                                                    |
+| Change                                                                                                              | Why                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `GET /transactions?period=7d\|30d\|90d\|1y` (optional, mutually exclusive with `startDate`/`endDate`)               | The transaction list uses exactly the same server-resolved range as the summary, with no duplicated date logic |
+| `spentChange` / `transactionChange` may be `null`                                                                   | When there's nothing to compare against, the UI says so instead of showing `Infinity%`                         |
+| `topCategory` may be `null`                                                                                         | No spending in the period                                                                                      |
+| Goal `status` adds `exceeded` (> 100 %) alongside `on_track` (< 80 %) and `warning` (80–100 %)                      | A budget can be overspent                                                                                      |
+| `category` filter is case-insensitive; unknown categories return 400                                                | Friendlier input, clear errors                                                                                 |
+| `GET /api/health`, `GET /api/meta` (`dataAsOf`, `timezone`, `currency`)                                             | Container health check, and lets the UI label the demo date and the in-progress month                          |
+| Errors: `{ "error": { "code", "message", "details?": [{ "field", "message" }] } }` with 400 / 404 / 413 / 429 / 500 | One consistent, safe error shape that never leaks stack traces                                                 |
+| `POST /api/client-errors` (202, no body)                                                                            | Receives browser error reports; validated, 16 kB limit, rate-limited per client                                |
 
-Only customer `12345` exists. Other IDs return 404.
+Only customer `12345` exists; any other ID returns 404.
 
-## UX and accessibility
+---
 
-- Mobile-first layout, checked from 360 px to 1440 px with no horizontal scrolling on any tab.
-- Tab changes behave like page changes: the document title updates, the page scrolls to the top, and focus moves to the new tab's heading, so screen-reader and keyboard users know where they are. The sidebar menu items are links marked with `aria-current`.
-- Plain-language copy with the comparison basis spelled out ("3,8% more than the previous 30 days"). Increases are not coloured red, because spending more is not automatically bad.
-- Rand formatted with `Intl.NumberFormat('en-ZA', { currency: 'ZAR' })` everywhere. Expenses are shown as debits (−R 262,38).
-- Semantic landmarks and headings, labelled `section` regions, a skip link, visible focus rings, labelled form controls, and announced loading and result-count status.
-- Charts: the donut has a text summary and a full list equivalent; the trend has written takeaways and a data table. Category colours are never used as text colour (several are too light for text contrast), and status is always stated in words.
-- `prefers-reduced-motion` disables chart and UI animations.
+## Testing
+
+I tested at every level, because a dashboard about someone's money has to be right, not just look right.
+
+| Command                      | What it runs                                                                                                |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `npm run typecheck`          | `tsc -b` across UI, server, shared code and tests (strict, `noUncheckedIndexedAccess`)                      |
+| `npm run lint`               | ESLint with `typescript-eslint`, React Hooks and `jsx-a11y`; zero warnings allowed                          |
+| `npm run format:check`       | Prettier                                                                                                    |
+| `npm test`                   | Vitest: unit, API (Supertest) and component (React Testing Library) tests                                   |
+| `npm run test:coverage`      | The same, with coverage                                                                                     |
+| `npm run test:e2e`           | Playwright against the production build, on desktop (1440 px) and mobile (Pixel 7)                          |
+| `npm run verify`             | Typecheck, lint, format, tests and build in one go                                                          |
+| `npm run test:lighthouse`    | Lighthouse CI against the production build, with performance, accessibility, best-practice and size budgets |
+| `npm run test:visual:docker` | Visual regression: every section in light and dark, desktop and mobile, compared with committed screenshots |
+| `npm run test:visual:update` | Regenerates the visual baselines after an intentional UI change                                             |
+
+Notes:
+
+- The first time you run end-to-end tests, install the browser with `npx playwright install chromium`. `test:e2e` builds the app and starts the server itself; set `E2E_SKIP_BUILD=1` if you've already built.
+- `test:lighthouse` needs Chrome; set `CHROME_PATH` to Playwright's Chromium if you don't have it installed. Reports go to `.lighthouseci/`.
+- I run the visual suite only inside `mcr.microsoft.com/playwright:v1.64.1-noble`, because fonts render slightly differently on each operating system. The scripts mount the repo and keep the container's Linux `node_modules` separate from yours.
+
+**What the tests cover**
+
+- **Calculations and dates:** Johannesburg day boundaries (including UTC times that fall on the next local day), leap years, equal-length comparison periods, percentage change with a zero denominator, rounding (`1.005 → 1.01`), ties, zero-spend months, budget thresholds (79.99 / 80 / 100 / 100.01 %), stable sorting, and pagination without gaps or duplicates.
+- **Consistency:** for every period, the summary total, category total and transaction count agree; percentages add up to about 100 %; and the generated data is identical on every run.
+- **API:** every endpoint's shape, defaults, filtering, sorting and pagination; a 400 for each invalid parameter; 404s for unknown customers and routes; no leaked stack traces; `Cache-Control: no-store` and security headers; and the error-report endpoint's validation, size limit and rate limit.
+- **Components:** loading, success, error-with-retry and empty states; labelled controls; accessible budget progress; one failing endpoint leaving other cards intact; navigation updating the URL, title and focus; and copy coming from the i18n catalogue.
+- **End-to-end:** no console errors on load; every section reachable, including with the back button; the period filter applying across sections; category → filtered transactions → sort → paginate → refresh restoring the view; safe fallbacks for bad URLs; **no horizontal scroll and zero serious accessibility violations on every section, in both themes**; API failure and recovery; "Clear filters" on empty results; a keyboard-only flow; dark mode persisting across reloads; and a real browser error reaching the server through the CSP.
+- **Visual regression:** 12 screenshots per device (every section in light and dark, a filtered list, and an error state) on desktop and mobile, at a 0.2 % pixel tolerance.
+- **Lighthouse budgets** (median of three runs on Lighthouse's mobile profile: slow 4G, 4× CPU slowdown): accessibility 100, best practices ≥ 95, performance ≥ 70, LCP ≤ 4 s, total blocking time ≤ 650 ms, CLS ≤ 0.1, ≤ 320 kB of compressed JavaScript, and no third-party requests. When I last measured, performance was 82 (Overview), 91 (Transactions) and 82 (Trends).
+
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of this on every push and pull request (Lighthouse and visual regression as separate jobs that upload their reports), then builds the Docker image and smoke-tests the running container.
 
 ## Configuration
 
@@ -192,14 +203,15 @@ Only customer `12345` exists. Other IDs return 404.
 | `API_LATENCY_MS`      | `0`                                         | Development only: artificial API delay for checking loading states |
 | `VITE_CUSTOMER_ID`    | `12345`                                     | Build-time customer ID used by the UI                              |
 
-No secrets, databases or external services are required.
+There are no secrets, databases or external services to set up.
 
-## Known limitations and next steps
+## Known limitations
 
-- **No authentication.** A real deployment would put the API behind the bank's identity provider and derive the customer from the session, never from the URL.
-- **Budgets are read-only** because the contract has no write endpoints.
-- **Preset periods only in the UI.** The categories endpoint supports custom date ranges, but the summary endpoint does not, so exposing custom ranges would show mismatched numbers. Extending the summary endpoint would be the next step.
-- **No free-text transaction search**, because the contract has no search parameter.
-- **Error reports are logged, not stored or alerted on.** In production they would flow from the structured logs into the bank's observability stack.
-- **English only.** The i18n infrastructure is in place; additional languages need professional translations rather than machine-generated copy.
-- **Next with more time:** zero-runtime styling to cut first-render cost, custom date ranges (with a matching summary endpoint), and server-side request tracing.
+These are deliberate boundaries for an assessment, and I'd be happy to talk through how I'd handle each in production:
+
+- **No authentication.** In production the API would sit behind the bank's identity provider, and the customer would come from the session, never the URL.
+- **Budgets are read-only**, because the contract has no endpoints for creating or editing them.
+- **Preset periods only.** The categories endpoint accepts custom date ranges, but the summary endpoint doesn't, so offering custom ranges in the UI would show mismatched numbers.
+- **No free-text search**, because the transactions endpoint has no search parameter.
+- **Error reports are logged, not stored or alerted on.** In production they would flow from the structured logs into the bank's monitoring.
+- **English only.** The i18n structure is ready, but additional languages deserve professional translation rather than machine-generated copy.
