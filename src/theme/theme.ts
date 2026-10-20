@@ -154,6 +154,12 @@ export function createAppTheme(mode: PaletteMode) {
       button: { textTransform: 'none', fontWeight: 600, letterSpacing: 0 },
     },
     components: {
+      MuiTypography: {
+        // Styles are not semantics: only explicit headings should become <h*> elements.
+        defaultProps: {
+          variantMapping: { subtitle1: 'p', subtitle2: 'p', overline: 'span' },
+        },
+      },
       MuiCssBaseline: {
         styleOverrides: {
           ':root': { ...cssVars(mode), colorScheme: mode },

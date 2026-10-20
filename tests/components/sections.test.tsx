@@ -99,7 +99,7 @@ describe('CategoriesView', () => {
       /^Transportation: R\s5\s268,35, 27,7% of spending, 10 transactions/,
     );
     expect(
-      screen.getByRole('img', { name: /Donut chart of spending by category/ }),
+      await screen.findByRole('img', { name: /Donut chart of spending by category/ }),
     ).toBeInTheDocument();
     expect(screen.getAllByText(/20 Sept? 2026 – 19 Oct 2026/).length).toBeGreaterThan(0);
 

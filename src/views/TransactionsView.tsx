@@ -22,6 +22,7 @@ import { TransactionTable } from '../components/transactions/TransactionTable';
 import { TRANSACTIONS_PAGE_SIZE } from '../config';
 import { useTransactions } from '../hooks/useInsightsQueries';
 import { tokens } from '../theme/theme';
+import { visuallyHiddenSx } from '../utils/a11y';
 import { formatNumber, PERIOD_LABEL, SORT_LABELS } from '../utils/format';
 
 export interface TransactionFilterChanges {
@@ -78,6 +79,9 @@ export function TransactionsPanel({
 
   return (
     <Card component="section" aria-label="Transactions" sx={{ p: tokens.cardPadding }}>
+      <Typography variant="h2" sx={visuallyHiddenSx}>
+        Transaction list
+      </Typography>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1.5}

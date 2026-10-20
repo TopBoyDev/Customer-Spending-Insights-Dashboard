@@ -39,6 +39,8 @@ export default defineConfig({
     environment: 'node',
     setupFiles: ['tests/setup.ts'],
     restoreMocks: true,
+    // Component tests render the full UI against a real HTTP server; allow slower CI machines.
+    testTimeout: 15_000,
     coverage: {
       provider: 'v8',
       include: ['src/**', 'server/**', 'shared/**'],

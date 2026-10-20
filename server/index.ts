@@ -2,7 +2,9 @@ import { createApp } from './app';
 import { loadConfig } from './config';
 import { createDemoService } from './create-demo-service';
 
-const config = loadConfig();
+// The production bundle has NODE_ENV compiled in as "production" (see tsup.config.ts),
+// so `npm start` serves the dashboard without the caller having to set it.
+const config = loadConfig({ ...process.env, NODE_ENV: process.env.NODE_ENV });
 const app = createApp({
   service: createDemoService(config.referenceDate),
   staticDir: config.isProduction ? config.staticDir : undefined,
