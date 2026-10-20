@@ -25,7 +25,7 @@ export function TransactionTable({
 }) {
   return (
     <TableContainer>
-      <Table size="small" sx={{ '& td, & th': { py: 1.25 } }}>
+      <Table size="small" sx={{ '& td, & th': { py: 1.75 }, '& thead th': { py: 1.25 } }}>
         <Box component="caption" sx={visuallyHiddenSx}>
           {caption}
         </Box>

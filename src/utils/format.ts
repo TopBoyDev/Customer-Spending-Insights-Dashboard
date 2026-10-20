@@ -83,6 +83,20 @@ export function formatTransactionDate(isoInstant: string): string {
   return dateFormatter.format(new Date(isoInstant));
 }
 
+const dayMonthFormatter = new Intl.DateTimeFormat(LOCALE, {
+  timeZone: APP_TIMEZONE,
+  day: 'numeric',
+  month: 'short',
+});
+
+/**
+ * Transaction instant → "17 Oct". Unambiguous within any selectable period
+ * (the longest is one year), so the year is omitted where space is tight.
+ */
+export function formatTransactionDayMonth(isoInstant: string): string {
+  return dayMonthFormatter.format(new Date(isoInstant));
+}
+
 /** Transaction instant → Johannesburg time, e.g. "14:30". */
 export function formatTransactionTime(isoInstant: string): string {
   return timeFormatter.format(new Date(isoInstant));

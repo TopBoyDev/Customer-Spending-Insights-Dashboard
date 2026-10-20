@@ -6,7 +6,6 @@ import GridViewOutlined from '@mui/icons-material/GridViewOutlined';
 import LightModeOutlined from '@mui/icons-material/LightModeOutlined';
 import ReceiptLongOutlined from '@mui/icons-material/ReceiptLongOutlined';
 import ShowChartRounded from '@mui/icons-material/ShowChartRounded';
-import WorkspacePremiumRounded from '@mui/icons-material/WorkspacePremiumRounded';
 import {
   Avatar,
   Box,
@@ -136,29 +135,6 @@ function CustomerAvatar({ name, size = 42 }: { name: string; size?: number }) {
   );
 }
 
-function PremiumBadge() {
-  return (
-    <Stack
-      direction="row"
-      spacing={0.375}
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        px: 0.75,
-        py: 0.125,
-        borderRadius: tokens.radius.pill,
-        background: 'linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%)',
-        color: '#3B2500',
-      }}
-    >
-      <WorkspacePremiumRounded aria-hidden sx={{ fontSize: 12 }} />
-      <Typography component="span" sx={{ fontSize: '0.6875rem', fontWeight: 700 }}>
-        Premium
-      </Typography>
-    </Stack>
-  );
-}
-
 function ProfileCard({ profile }: { profile: CustomerProfile }) {
   const meta = useApiMeta();
   return (
@@ -175,12 +151,11 @@ function ProfileCard({ profile }: { profile: CustomerProfile }) {
         <Box sx={{ minWidth: 0 }}>
           <Typography
             variant="body2"
-            sx={{ fontWeight: 700, color: WHITE, lineHeight: 1.3, mb: 0.375 }}
+            sx={{ fontWeight: 700, color: WHITE, lineHeight: 1.3 }}
             noWrap
           >
             {profile.name}
           </Typography>
-          {profile.accountType === 'premium' && <PremiumBadge />}
         </Box>
       </Stack>
       {meta.data && (

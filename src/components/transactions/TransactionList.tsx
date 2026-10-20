@@ -1,41 +1,64 @@
 import { Box, Stack, Typography } from '@mui/material';
-import { toLocalDate } from '../../../shared/dates';
 import type { Transaction } from '../../../shared/types';
-import { formatCurrency, formatDayHeading, formatTransactionTime } from '../../utils/format';
+import {
+  formatCurrency,
+  formatDayHeading,
+  formatTransactionDayMonth,
+  formatTransactionTime,
+} from '../../utils/format';
 import { groupByDay } from '../../utils/transactions';
 import { CategoryDot } from '../common/CategoryDot';
 import { CategoryIcon } from '../common/CategoryIcon';
 
-function TransactionCard({ transaction }: { transaction: Transaction }) {
+function TransactionRow({
+  transaction,
+  showDate,
+}: {
+  transaction: Transaction;
+  showDate: boolean;
+}) {
+  const when = showDate
+    ? formatTransactionDayMonth(transaction.date)
+    : formatTransactionTime(transaction.date);
   return (
     <Stack
       component="li"
       direction="row"
-      spacing={1.5}
-      sx={{ alignItems: 'center', py: 1.25, listStyle: 'none' }}
+      spacing={1.75}
+      sx={{ alignItems: 'center', py: 1.75, listStyle: 'none' }}
     >
-      <CategoryIcon icon={transaction.icon} />
+      <CategoryIcon icon={transaction.icon} size={42} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="subtitle2" noWrap>
+        <Typography variant="subtitle2" noWrap sx={{ fontSize: '0.9375rem', mb: 0.375 }}>
           {transaction.merchant}
         </Typography>
         <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
           <CategoryDot color={transaction.categoryColor} size={6} />
           <Typography variant="caption" component="p" noWrap>
-            {transaction.category} · {formatTransactionTime(transaction.date)}
+            {transaction.category} · {when}
           </Typography>
         </Stack>
       </Box>
-      <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
+      <Typography
+        variant="subtitle2"
+        sx={{ whiteSpace: 'nowrap', fontSize: '0.9375rem', fontWeight: 700 }}
+      >
         −{formatCurrency(transaction.amount)}
       </Typography>
     </Stack>
   );
 }
 
+const rowListSx = {
+  m: 0,
+  p: 0,
+  '& > li + li': { borderTop: 1, borderColor: 'divider' },
+} as const;
+
 /**
- * Card list for small screens. When sorted by amount the date grouping would
- * be meaningless, so each card then shows its own date heading.
+ * Card list for small screens. Sorted by date, rows are grouped under day
+ * headings; sorted by amount, grouping would be meaningless, so it is a flat
+ * list with the date shown on each row.
  */
 export function TransactionList({
   transactions,
@@ -44,31 +67,30 @@ export function TransactionList({
   transactions: Transaction[];
   groupByDate: boolean;
 }) {
-  const groups = groupByDate
-    ? groupByDay(transactions)
-    : transactions.map((transaction) => ({
-        date: toLocalDate(transaction.date),
-        transactions: [transaction],
-      }));
+  if (!groupByDate) {
+    return (
+      <Box component="ul" sx={rowListSx}>
+        {transactions.map((transaction) => (
+          <TransactionRow key={transaction.id} transaction={transaction} showDate />
+        ))}
+      </Box>
+    );
+  }
 
   return (
-    <Stack spacing={1.5}>
-      {groups.map((group, index) => (
-        <Box key={`${group.date}-${index}`}>
+    <Stack spacing={3}>
+      {groupByDay(transactions).map((group) => (
+        <Box key={group.date}>
           <Typography
             variant="caption"
             component="h3"
-            color="text.secondary"
-            sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}
+            sx={{ fontWeight: 600, color: 'text.secondary', mb: 0.5 }}
           >
             {formatDayHeading(group.date)}
           </Typography>
-          <Box
-            component="ul"
-            sx={{ m: 0, p: 0, '& > li + li': { borderTop: 1, borderColor: 'divider' } }}
-          >
+          <Box component="ul" sx={rowListSx}>
             {group.transactions.map((transaction) => (
-              <TransactionCard key={transaction.id} transaction={transaction} />
+              <TransactionRow key={transaction.id} transaction={transaction} showDate={false} />
             ))}
           </Box>
         </Box>

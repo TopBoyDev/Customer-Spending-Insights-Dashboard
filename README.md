@@ -96,7 +96,7 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 - **Modern controls.** Pill-shaped filter selects with an icon and no floating label (the accessible name is still provided), a segmented period picker, and "View all" links in card headers.
 - **Typography.** Self-hosted Inter, tabular numerals so amounts line up, and minimal copy: labels and numbers rather than explanatory sentences.
 - **Light and dark modes.** Light is the default; the choice (sidebar switch on desktop, header button on phones) is remembered on the device. Each mode has its own palette exposed as CSS custom properties, so one switch re-themes every surface; charts read concrete colours for SVG. Both modes pass the automated WCAG 2.2 AA scan on every screen.
-- **Navigation chrome.** A floating brand-blue sidebar with a light/dark switch and a profile card (gradient initials avatar chosen from the customer's name, and a Premium badge from the API's `accountType`). On phones: a brand header and a floating, blurred tab bar where the active tab gets a pill indicator.
+- **Navigation chrome.** A floating brand-blue sidebar with a light/dark switch and a profile card with a gradient initials avatar chosen from the customer's name. On phones: a brand header and a floating, blurred tab bar where the active tab gets a pill indicator.
 - **Tooltips where they add information**, not decoration: the full sentence behind a change badge, what each budget status means, the figures behind each proportion-bar segment, the meaning of the demo data date, and labels for icon-only buttons. Every tooltip target is keyboard-focusable or duplicates text that is already accessible.
 
 ## Architecture
