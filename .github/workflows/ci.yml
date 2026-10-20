@@ -86,6 +86,34 @@ jobs:
           path: .lighthouseci
           retention-days: 14
 
+  visual:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Same image the baselines were generated in, so rendering is identical.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: npm ci
+
+      - name: Compare screenshots with committed baselines
+        run: npm run test:visual
+        env:
+          CI: 'true'
+
+      - name: Upload visual diff report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
   docker:
     name: Docker image
     runs-on: ubuntu-latest

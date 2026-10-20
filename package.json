@@ -24,7 +24,10 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
-    "test:lighthouse": "lhci autorun --config=lighthouserc.cjs"
+    "test:lighthouse": "lhci autorun --config=lighthouserc.cjs",
+    "test:visual": "playwright test --config=playwright.visual.config.ts",
+    "test:visual:docker": "docker run --rm --ipc=host -v \"$PWD\":/work -v /work/node_modules -w /work mcr.microsoft.com/playwright:v1.64.1-noble bash -c \"npm ci --no-audit --no-fund && npm run test:visual\"",
+    "test:visual:update": "docker run --rm --ipc=host -v \"$PWD\":/work -v /work/node_modules -w /work mcr.microsoft.com/playwright:v1.64.1-noble bash -c \"npm ci --no-audit --no-fund && npm run test:visual -- --update-snapshots\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

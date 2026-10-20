@@ -51,17 +51,22 @@ npm start          # serves both on http://localhost:3000
 
 ## Testing and quality checks
 
-| Command                 | What it runs                                                                                       |
-| ----------------------- | -------------------------------------------------------------------------------------------------- |
-| `npm run typecheck`     | `tsc -b` across the UI, server, shared and test projects (strict mode, `noUncheckedIndexedAccess`) |
-| `npm run lint`          | ESLint, including `typescript-eslint`, React Hooks and `jsx-a11y`; zero warnings allowed           |
-| `npm run format:check`  | Prettier                                                                                           |
-| `npm test`              | Vitest: unit, API (Supertest) and component (React Testing Library) tests                          |
-| `npm run test:coverage` | The same, with V8 coverage                                                                         |
-| `npm run test:e2e`      | Playwright against the production build, on desktop (1440 px) and mobile (Pixel 7) Chromium        |
-| `npm run verify`        | typecheck, lint, format, test and build in one go                                                  |
+| Command                      | What it runs                                                                                                                                           |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run typecheck`          | `tsc -b` across the UI, server, shared and test projects (strict mode, `noUncheckedIndexedAccess`)                                                     |
+| `npm run lint`               | ESLint, including `typescript-eslint`, React Hooks and `jsx-a11y`; zero warnings allowed                                                               |
+| `npm run format:check`       | Prettier                                                                                                                                               |
+| `npm test`                   | Vitest: unit, API (Supertest) and component (React Testing Library) tests                                                                              |
+| `npm run test:coverage`      | The same, with V8 coverage                                                                                                                             |
+| `npm run test:e2e`           | Playwright against the production build, on desktop (1440 px) and mobile (Pixel 7) Chromium                                                            |
+| `npm run verify`             | typecheck, lint, format, test and build in one go                                                                                                      |
+| `npm run test:lighthouse`    | Lighthouse CI against the production build: performance, accessibility, best-practice and size budgets                                                 |
+| `npm run test:visual:docker` | Visual regression: screenshots of every view (light/dark, desktop/mobile) compared with committed baselines, inside the pinned Playwright Docker image |
+| `npm run test:visual:update` | Regenerates the visual baselines (same Docker image) after an intentional UI change                                                                    |
 
 The first time you run end-to-end tests, install the browser with `npx playwright install chromium`. `test:e2e` builds the app and starts the production server itself. Set `E2E_SKIP_BUILD=1` if you have already run `npm run build`.
+
+`test:lighthouse` needs a local Chrome (set `CHROME_PATH` to Playwright's Chromium if Chrome is not installed) and writes HTML reports to `.lighthouseci/`. The visual suite runs only inside `mcr.microsoft.com/playwright:v1.64.1-noble` because font rendering differs between operating systems; the scripts mount the repository and keep the container's Linux `node_modules` separate from yours.
 
 **What is covered**
 
@@ -69,9 +74,11 @@ The first time you run end-to-end tests, install the browser with `npx playwrigh
 - **Data consistency:** for every period, summary total = category total = transaction count, percentages sum to about 100 %, and the dataset is identical on every generation.
 - **API:** every endpoint's response shape, defaults, filtering, sorting and pagination; 400s for each invalid parameter; 404s for unknown customers and routes; no stack traces leaked; `Cache-Control: no-store` and security headers.
 - **Components:** loading, success, error with retry (which really re-requests), and empty states; labelled filter controls; category rows; accessible goal progress; one failing endpoint not breaking other cards; tab navigation updating URL, title and focus; and category selection opening filtered transactions. Tests render against the real mock API on an ephemeral port, with per-test overrides for failures.
-- **End-to-end:** first load with no console errors; every tab reachable from the navigation, with back-button support; Overview cards open their tabs; period change updates figures and URL across tabs; category → filtered transactions → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; **no horizontal scroll and an axe-core WCAG 2.2 AA scan with zero serious/critical violations on every tab**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow through the sidebar menu.
+- **End-to-end:** first load with no console errors; every tab reachable from the navigation, with back-button support; Overview cards open their tabs; period change updates figures and URL across tabs; category → filtered transactions → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; **no horizontal scroll and an axe-core WCAG 2.2 AA scan with zero serious/critical violations on every tab**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow through the sidebar menu; dark mode toggling, persistence and the WCAG scan in dark mode; and a real browser error being delivered to `/api/client-errors` through the Content Security Policy.
+- **Visual regression:** 12 screenshots per device profile (every view in light and dark, a filtered transaction list and an error state) on desktop and mobile, compared at a 0.2 % pixel tolerance.
+- **Lighthouse budgets** (median of three runs, Lighthouse's default mobile profile: slow 4G, 4× CPU slowdown): accessibility 100 and best practices ≥ 95 on every audited page; performance ≥ 70; LCP ≤ 4 s; TBT ≤ 650 ms; CLS ≤ 0.1; ≤ 320 kB of compressed JavaScript; no third-party requests. Measured at the time of writing: performance 82 (Overview), 91 (Transactions) and 82 (Trends).
 
-CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above on every push and pull request, then builds the Docker image and smoke-tests the running container.
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above on every push and pull request (Lighthouse and visual regression as separate jobs that upload their reports), then builds the Docker image and smoke-tests the running container.
 
 ---
 
@@ -107,19 +114,20 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 │   ├── data/               Seeded PRNG, deterministic ledger generator, fictional customer and budgets
 │   ├── utils/              Pure functions: periods, aggregation, % change, goals, sorting, pagination, rounding
 │   ├── services/           insights-service: derives every endpoint response from one ledger + reference date
-│   ├── routes/             Thin Express handlers: validate (Zod) → call service → JSON
+│   ├── routes/             Thin Express handlers: validate (Zod) → call service → JSON; client error intake
 │   ├── validation.ts       Query-parameter schemas with readable messages
 │   ├── app.ts              Security headers, compression, /api router, static files + SPA fallback
 │   └── index.ts            Config, listen, graceful shutdown
 ├── src/
-│   ├── views/              One component per tab: Overview, Categories, Trends, Transactions, Budgets
+│   ├── views/              One component per tab (code-split except Overview)
+│   ├── i18n/               Typed English message catalogue, plural helper, provider and locale
 │   ├── components/         layout/ (app shell: sidebar, mobile bars, page header), overview/ (summary cards), transactions/, states/, common/
 │   ├── navigation.ts       Tab definitions
 │   ├── hooks/              useDashboardFilters (tab + filter URL state), useInsightsQueries (TanStack Query)
-│   ├── services/           Typed fetch client with ApiError; QueryClient defaults
+│   ├── services/           Typed fetch client with ApiError; QueryClient defaults; error reporter
 │   ├── theme/              Design tokens and MUI theme
 │   └── utils/              Formatting (en-ZA, ZAR, Africa/Johannesburg), insight copy, accessibility helpers
-├── tests/                  unit/, api/, components/, e2e/, fixtures/
+├── tests/                  unit/, api/, components/, e2e/, visual/ (+ committed baselines), fixtures/
 └── Dockerfile, .github/workflows/ci.yml
 ```
 
@@ -133,20 +141,24 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 - **Service/handler separation.** Route handlers are a few lines each. To use a real upstream API, swap `insights-service` for an HTTP client with the same interface; the routes and UI stay unchanged.
 - **No global client store.** TanStack Query owns server state, with query keys that include every parameter (so fast filter changes can never mix responses). The URL owns filter state, and React state handles the rest. Redux would add nothing here.
 - **Retry policy.** Network and 5xx errors retry with backoff; 4xx errors do not.
+- **Vendor-neutral error reporting.** The error boundary and global `error`/`unhandledrejection` handlers send reports (via `sendBeacon`, falling back to `fetch` with `keepalive`) to `POST /api/client-errors`, which validates them, limits body size and rate per client, and writes one structured JSON log line. Reports are de-duplicated and capped per page load. Keeping reporting first-party means no third-party account and a strict CSP; a hosted service such as Sentry could be added behind `reportError()` without touching call sites.
+- **Internationalisation.** All copy lives in `src/i18n/en.ts`. Interpolated messages are typed functions, so a new locale must provide every message with the same parameters, enforced by the compiler. Plurals use `Intl.PluralRules`, and numbers, currency and dates share one locale constant. Only English ships; category names are API data and are shown as received.
+- **Performance.** The four detail views and every chart are code-split, so the chart library is not on the Overview's critical path; `index.html` paints a branded shell before any JavaScript runs. The remaining main-thread cost is React and MUI's runtime styling on first render; a zero-runtime CSS approach would be the next step if budgets needed tightening.
 
 ### API contract extensions
 
 All seven contract endpoints keep their documented shapes. Where the contract was silent, these additions are documented here rather than made silently:
 
-| Change                                                                                                  | Why                                                                                                                                |
-| ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /transactions?period=7d\|30d\|90d\|1y` (optional, mutually exclusive with `startDate`/`endDate`)   | Lets the transaction list use exactly the same server-resolved range as the summary, without the client re-implementing date logic |
-| `spentChange` / `transactionChange` may be `null`                                                       | The previous period had nothing to compare with; the UI says so instead of showing `Infinity%`                                     |
-| `topCategory` may be `null`                                                                             | No spending in the period                                                                                                          |
-| Goal `status` adds `exceeded` (> 100 %) alongside `on_track` (< 80 %) and `warning` (80–100 %)          | A budget can be overspent                                                                                                          |
-| `category` filter is case-insensitive; unknown categories return 400                                    | Friendlier input, explicit errors                                                                                                  |
-| `GET /api/health`, `GET /api/meta` (`dataAsOf`, `timezone`, `currency`)                                 | Container health check; lets the UI label the demo date and the in-progress month                                                  |
-| Errors: `{ "error": { "code", "message", "details?": [{ "field", "message" }] } }` with 400 / 404 / 500 | Consistent, safe error bodies                                                                                                      |
+| Change                                                                                                              | Why                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /transactions?period=7d\|30d\|90d\|1y` (optional, mutually exclusive with `startDate`/`endDate`)               | Lets the transaction list use exactly the same server-resolved range as the summary, without the client re-implementing date logic |
+| `spentChange` / `transactionChange` may be `null`                                                                   | The previous period had nothing to compare with; the UI says so instead of showing `Infinity%`                                     |
+| `topCategory` may be `null`                                                                                         | No spending in the period                                                                                                          |
+| Goal `status` adds `exceeded` (> 100 %) alongside `on_track` (< 80 %) and `warning` (80–100 %)                      | A budget can be overspent                                                                                                          |
+| `category` filter is case-insensitive; unknown categories return 400                                                | Friendlier input, explicit errors                                                                                                  |
+| `GET /api/health`, `GET /api/meta` (`dataAsOf`, `timezone`, `currency`)                                             | Container health check; lets the UI label the demo date and the in-progress month                                                  |
+| Errors: `{ "error": { "code", "message", "details?": [{ "field", "message" }] } }` with 400 / 404 / 413 / 429 / 500 | Consistent, safe error bodies                                                                                                      |
+| `POST /api/client-errors` (202, no body)                                                                            | Receives browser error reports; validated, 16 kB limit, rate-limited per client                                                    |
 
 Only customer `12345` exists. Other IDs return 404.
 
@@ -178,4 +190,6 @@ No secrets, databases or external services are required.
 - **Budgets are read-only** because the contract has no write endpoints.
 - **Preset periods only in the UI.** The categories endpoint supports custom date ranges, but the summary endpoint does not, so exposing custom ranges would show mismatched numbers. Extending the summary endpoint would be the next step.
 - **No free-text transaction search**, because the contract has no search parameter.
-- **Next with more time:** visual regression snapshots, Lighthouse CI budgets, error reporting (for example Sentry) from the error boundary, and i18n of copy.
+- **Error reports are logged, not stored or alerted on.** In production they would flow from the structured logs into the bank's observability stack.
+- **English only.** The i18n infrastructure is in place; additional languages need professional translations rather than machine-generated copy.
+- **Next with more time:** zero-runtime styling to cut first-render cost, custom date ranges (with a matching summary endpoint), and server-side request tracing.
