@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createErrorHandler, apiNotFound } from './http-errors';
+import { createClientErrorRouter, type ClientErrorOptions } from './routes/client-error-routes';
 import { createCustomerRouter } from './routes/customer-routes';
 import type { InsightsService } from './services/insights-service';
 
@@ -14,6 +15,8 @@ export interface AppOptions {
   /** Artificial latency for manually checking loading states (development only). */
   latencyMs?: number;
   logRequests?: boolean;
+  /** Configuration for browser error reports received at POST /api/client-errors. */
+  clientErrors?: ClientErrorOptions;
 }
 
 export function createApp({
@@ -21,6 +24,7 @@ export function createApp({
   staticDir,
   latencyMs = 0,
   logRequests = false,
+  clientErrors,
 }: AppOptions): Express {
   const app = express();
   app.disable('x-powered-by');
@@ -76,6 +80,7 @@ export function createApp({
     res.json(service.getMeta());
   });
   api.use('/customers', createCustomerRouter(service));
+  api.use('/client-errors', createClientErrorRouter(clientErrors));
   api.use(apiNotFound);
 
   // The /api prefix is reserved before any static file or SPA fallback.

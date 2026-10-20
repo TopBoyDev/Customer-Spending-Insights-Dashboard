@@ -273,3 +273,21 @@ test('dark mode can be switched on, persists across reloads and stays accessible
     ).toEqual([]);
   }
 });
+
+test('uncaught browser errors are reported to the server', async ({ page }) => {
+  await page.goto('/');
+  await expect(heading(page, 'Overview')).toBeVisible();
+
+  const reported = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/api/client-errors') && response.request().method() === 'POST',
+  );
+  await page.evaluate(() => {
+    setTimeout(() => {
+      throw new Error('E2E deliberate error');
+    });
+  });
+  const response = await reported;
+  expect(response.status()).toBe(202);
+  // 202 means the server validated the report against its schema and logged it.
+});

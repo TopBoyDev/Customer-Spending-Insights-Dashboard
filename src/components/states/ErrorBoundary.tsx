@@ -1,5 +1,6 @@
 import { Alert, Button, Container } from '@mui/material';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { reportError } from '../../services/error-reporter';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -14,8 +15,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo) {
-    // A production app would report this to an error-monitoring service.
     console.error('Unexpected rendering error', error, info.componentStack);
+    reportError(error, 'render', { componentStack: info.componentStack ?? undefined });
   }
 
   override render() {

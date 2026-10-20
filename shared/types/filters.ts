@@ -23,7 +23,8 @@ export interface ApiMeta {
 /** Error body returned by every failing API request. */
 export interface ApiErrorBody {
   error: {
-    code: 'BAD_REQUEST' | 'NOT_FOUND' | 'INTERNAL_ERROR';
+    code:
+      'BAD_REQUEST' | 'NOT_FOUND' | 'PAYLOAD_TOO_LARGE' | 'TOO_MANY_REQUESTS' | 'INTERNAL_ERROR';
     message: string;
     details?: { field: string; message: string }[];
   };
