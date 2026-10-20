@@ -8,9 +8,11 @@ Built with **React 18, TypeScript (strict), Material UI, TanStack Query and Rech
 
 <img src="docs/screenshots/desktop-overview.png" alt="Overview tab on a desktop screen: total spent, category split, monthly budgets, monthly trend and recent transactions" width="820">
 
-| Transactions tab                                                                                                            | Phone: Overview                                                                                                | Phone: Budgets                                                                       |
-| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| <img src="docs/screenshots/desktop-transactions.png" alt="Transactions tab with filters, table and pagination" width="420"> | <img src="docs/screenshots/mobile-overview.png" alt="Overview on a phone with the bottom tab bar" width="190"> | <img src="docs/screenshots/mobile-budgets.png" alt="Budgets on a phone" width="190"> |
+<img src="docs/screenshots/desktop-overview-dark.png" alt="Overview in dark mode" width="820">
+
+| Transactions tab                                                                                                            | Phone: Overview                                                                                                  | Phone: Budgets (dark)                                                                             |
+| --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| <img src="docs/screenshots/desktop-transactions.png" alt="Transactions tab with filters, table and pagination" width="420"> | <img src="docs/screenshots/mobile-overview.png" alt="Overview on a phone with the floating tab bar" width="190"> | <img src="docs/screenshots/mobile-budgets.png" alt="Budgets on a phone in dark mode" width="190"> |
 
 ---
 
@@ -93,6 +95,9 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 - **One accent.** Charts use a blue gradient; budget progress is blue, turning red only when a budget is exceeded. Category colours (from the API contract) appear only as small dots, chart slices and proportion bars, always next to the category name. Status is a small dot plus words.
 - **Modern controls.** Pill-shaped filter selects with an icon and no floating label (the accessible name is still provided), a segmented period picker, and "View all" links in card headers.
 - **Typography.** Self-hosted Inter, tabular numerals so amounts line up, and minimal copy: labels and numbers rather than explanatory sentences.
+- **Light and dark modes.** Light is the default; the choice (sidebar switch on desktop, header button on phones) is remembered on the device. Each mode has its own palette exposed as CSS custom properties, so one switch re-themes every surface; charts read concrete colours for SVG. Both modes pass the automated WCAG 2.2 AA scan on every screen.
+- **Navigation chrome.** A floating brand-blue sidebar with a light/dark switch and a profile card (gradient initials avatar chosen from the customer's name, and a Premium badge from the API's `accountType`). On phones: a brand header and a floating, blurred tab bar where the active tab gets a pill indicator.
+- **Tooltips where they add information**, not decoration: the full sentence behind a change badge, what each budget status means, the figures behind each proportion-bar segment, the meaning of the demo data date, and labels for icon-only buttons. Every tooltip target is keyboard-focusable or duplicates text that is already accessible.
 
 ## Architecture
 
@@ -173,5 +178,4 @@ No secrets, databases or external services are required.
 - **Budgets are read-only** because the contract has no write endpoints.
 - **Preset periods only in the UI.** The categories endpoint supports custom date ranges, but the summary endpoint does not, so exposing custom ranges would show mismatched numbers. Extending the summary endpoint would be the next step.
 - **No free-text transaction search**, because the contract has no search parameter.
-- **Single light theme.** Dark mode would be a straightforward theme-token extension.
 - **Next with more time:** visual regression snapshots, Lighthouse CI budgets, error reporting (for example Sentry) from the error boundary, and i18n of copy.

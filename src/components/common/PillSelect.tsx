@@ -65,7 +65,7 @@ export function PillSelect<T extends string>({
           fontSize: '0.875rem',
           fontWeight: 600,
           transition: 'background-color 150ms',
-          '&:hover': { bgcolor: '#ECEFF3' },
+          '&:hover': { bgcolor: tokens.color.surfaceHover },
           '&.Mui-focused': { boxShadow: `0 0 0 2px ${tokens.color.accentLight}` },
           '& .MuiSelect-select': { pl: 1.5, pr: '36px !important', py: 0 },
           '& .MuiSelect-icon': { right: 10, color: 'text.secondary', fontSize: 20 },

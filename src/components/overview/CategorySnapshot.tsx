@@ -1,4 +1,4 @@
-import { Box, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import type { Period, SpendingByCategory } from '../../../shared/types';
 import { useSpendingCategories } from '../../hooks/useInsightsQueries';
 import { formatCurrency, formatDateRange, formatPercent, PERIOD_LABEL } from '../../utils/format';
@@ -6,18 +6,32 @@ import { CategoryDot } from '../common/CategoryDot';
 import { SectionCard } from '../common/SectionCard';
 import { EmptyState, SectionState } from '../states/SectionState';
 
-/** One 100% bar showing each category's share; the legend below is its text equivalent. */
+/**
+ * One 100% bar showing each category's share; hovering a segment shows its
+ * figures. Hidden from assistive tech: the legend below is its text equivalent.
+ */
 export function ProportionBar({ data }: { data: SpendingByCategory }) {
   return (
     <Box
       aria-hidden
-      sx={{ display: 'flex', height: 10, borderRadius: 5, overflow: 'hidden', gap: '2px' }}
+      sx={{ display: 'flex', height: 12, borderRadius: 6, overflow: 'hidden', gap: '3px' }}
     >
       {data.categories.map((category) => (
-        <Box
+        <Tooltip
           key={category.name}
-          sx={{ flexGrow: category.amount, flexBasis: 0, minWidth: 3, bgcolor: category.color }}
-        />
+          title={`${category.name} · ${formatCurrency(category.amount)} · ${formatPercent(category.percentage)}`}
+        >
+          <Box
+            sx={{
+              flexGrow: category.amount,
+              flexBasis: 0,
+              minWidth: 3,
+              bgcolor: category.color,
+              transition: 'opacity 150ms',
+              '&:hover': { opacity: 0.8 },
+            }}
+          />
+        </Tooltip>
       ))}
     </Box>
   );

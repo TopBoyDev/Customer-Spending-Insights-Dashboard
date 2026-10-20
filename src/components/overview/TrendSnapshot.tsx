@@ -3,7 +3,7 @@ import { useId } from 'react';
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis } from 'recharts';
 import { toMonthKey } from '../../../shared/dates';
 import { useApiMeta, useSpendingTrends } from '../../hooks/useInsightsQueries';
-import { tokens } from '../../theme/theme';
+import { useAppColors } from '../../theme/theme';
 import { formatCurrency, formatMonthShort } from '../../utils/format';
 import { summariseTrends } from '../../utils/insights';
 import { barGradientDefs, svgSafeId } from '../../utils/charts';
@@ -16,6 +16,7 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
   const query = useSpendingTrends(SNAPSHOT_MONTHS);
   const meta = useApiMeta();
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const colors = useAppColors();
   const gradientId = svgSafeId(`trend-snapshot-${useId()}`);
   const currentMonth = meta.data ? toMonthKey(meta.data.dataAsOf) : undefined;
 
@@ -57,12 +58,12 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
               <Box sx={{ height: 150 }} aria-hidden>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={points} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-                    {barGradientDefs(gradientId)}
+                    {barGradientDefs(gradientId, colors)}
                     <XAxis
                       dataKey="label"
                       tickLine={false}
                       axisLine={false}
-                      tick={{ fill: tokens.color.textSecondary, fontSize: 12 }}
+                      tick={{ fill: colors.textSecondary, fontSize: 12 }}
                     />
                     <Bar
                       dataKey="totalSpent"
@@ -73,7 +74,7 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
                       {points.map((point) => (
                         <Cell
                           key={point.month}
-                          fill={point.isPartial ? tokens.color.chartMuted : `url(#${gradientId})`}
+                          fill={point.isPartial ? colors.chartMuted : `url(#${gradientId})`}
                         />
                       ))}
                     </Bar>

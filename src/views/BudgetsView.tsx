@@ -93,7 +93,7 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
           footnote={`${goals.length} ${goals.length === 1 ? 'category' : 'categories'}`}
         />
       </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
+      <Grid size={{ xs: 6, sm: 4 }}>
         <StatCard
           icon={<PaymentsOutlined />}
           label="Spent so far"
@@ -101,7 +101,7 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
           footnote={`${formatPercent(budget === 0 ? 0 : (spent / budget) * 100)} of budget`}
         />
       </Grid>
-      <Grid size={{ xs: 12, sm: 4 }}>
+      <Grid size={{ xs: 6, sm: 4 }}>
         <StatCard
           icon={<SavingsOutlined />}
           label={remaining >= 0 ? 'Remaining' : 'Over budget'}
@@ -109,7 +109,7 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
           footnote={
             daysRemaining === undefined
               ? undefined
-              : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} left in the month`
+              : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} left`
           }
         />
       </Grid>

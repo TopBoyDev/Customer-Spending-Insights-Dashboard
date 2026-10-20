@@ -66,6 +66,8 @@ function CategoryDonut({ data }: { data: SpendingByCategory }) {
               contentStyle={{
                 borderRadius: 10,
                 border: `1px solid ${tokens.color.border}`,
+                background: tokens.color.surface,
+                color: tokens.color.textPrimary,
                 fontSize: 13,
               }}
             />

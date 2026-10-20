@@ -41,7 +41,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { EmptyState, SectionState } from '../components/states/SectionState';
 import { TREND_MONTH_OPTIONS, type TrendMonths } from '../hooks/useDashboardFilters';
 import { useApiMeta, useSpendingTrends } from '../hooks/useInsightsQueries';
-import { tokens } from '../theme/theme';
+import { tokens, useAppColors } from '../theme/theme';
 import {
   formatCurrency,
   formatCurrencyAxis,
@@ -74,7 +74,7 @@ function TrendTooltip({
         borderRadius: 2,
         px: 1.5,
         py: 1,
-        boxShadow: '0 4px 16px rgba(17, 24, 39, 0.08)',
+        boxShadow: tokens.shadow.raised,
       }}
     >
       <Typography variant="caption" component="p">
@@ -100,6 +100,7 @@ function TrendChart({
   averageMonthly: number | null;
 }) {
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const colors = useAppColors();
   const gradientId = svgSafeId(`trend-chart-${useId()}`);
   const isNarrow = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
   // Let Recharts skip labels that would collide on small screens or long ranges.
@@ -109,13 +110,13 @@ function TrendChart({
     <Box sx={{ width: '100%', height: { xs: 240, sm: 300 } }} aria-hidden>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-          {barGradientDefs(gradientId)}
-          <CartesianGrid vertical={false} stroke={tokens.color.border} strokeDasharray="3 3" />
+          {barGradientDefs(gradientId, colors)}
+          <CartesianGrid vertical={false} stroke={colors.border} strokeDasharray="3 3" />
           <XAxis
             dataKey="label"
             tickLine={false}
             axisLine={false}
-            tick={{ fill: tokens.color.textSecondary, fontSize: 12 }}
+            tick={{ fill: colors.textSecondary, fontSize: 12 }}
             interval={compactAxis ? 'preserveStartEnd' : 0}
             minTickGap={8}
           />
@@ -124,18 +125,18 @@ function TrendChart({
             tickLine={false}
             axisLine={false}
             width={56}
-            tick={{ fill: tokens.color.textSecondary, fontSize: 12 }}
+            tick={{ fill: colors.textSecondary, fontSize: 12 }}
           />
-          <Tooltip content={<TrendTooltip />} cursor={{ fill: tokens.color.surfaceMuted }} />
+          <Tooltip content={<TrendTooltip />} cursor={{ fill: colors.surfaceMuted }} />
           {averageMonthly !== null && (
             <ReferenceLine
               y={averageMonthly}
-              stroke={tokens.color.textSecondary}
+              stroke={colors.textSecondary}
               strokeDasharray="4 4"
               label={{
                 value: 'Average',
                 position: 'insideTopRight',
-                fill: tokens.color.textSecondary,
+                fill: colors.textSecondary,
                 fontSize: 12,
               }}
             />
@@ -149,7 +150,7 @@ function TrendChart({
             {points.map((point) => (
               <Cell
                 key={point.month}
-                fill={point.isPartial ? tokens.color.chartMuted : `url(#${gradientId})`}
+                fill={point.isPartial ? colors.chartMuted : `url(#${gradientId})`}
               />
             ))}
           </Bar>

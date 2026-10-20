@@ -8,7 +8,13 @@ import { CATEGORY_BY_NAME } from '../../../shared/categories';
 import type { Period, SpendingSummary } from '../../../shared/types';
 import { useSpendingCategories, useSpendingSummary } from '../../hooks/useInsightsQueries';
 import { tokens } from '../../theme/theme';
-import { formatCurrency, formatNumber, formatPercent, PERIOD_LABEL } from '../../utils/format';
+import {
+  formatCurrency,
+  formatNumber,
+  formatPercent,
+  PERIOD_LABEL,
+  PREVIOUS_PERIOD_LABEL,
+} from '../../utils/format';
 import {
   describeCountChange,
   describeSpendingChange,
@@ -116,7 +122,7 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
             transactionChange !== null && (
               <ChangeBadge
                 change={transactionChange}
-                label={describeCountChange(transactionChange).text}
+                label={`${describeCountChange(transactionChange).text} transactions than ${PREVIOUS_PERIOD_LABEL[summary.period]}`}
               />
             )
           }
@@ -134,20 +140,14 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
         <StatCard
           icon={topCategory ? <CategoryIcon icon={topCategory.icon} size={19} bare /> : null}
           label="Top category"
-          value={
-            topCategory ? (
-              <Stack component="span" direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <CategoryDot color={topCategory.color} />
-                <span>{topCategory.name}</span>
-              </Stack>
-            ) : (
-              'None'
-            )
-          }
+          value={topCategory?.name ?? 'None'}
           footnote={
-            topShare
-              ? `${formatCurrency(topShare.amount)} · ${formatPercent(topShare.percentage)} of spend`
-              : undefined
+            topCategory && topShare ? (
+              <Stack component="span" direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                <CategoryDot color={topCategory.color} />
+                <span>{formatPercent(topShare.percentage)} of spend</span>
+              </Stack>
+            ) : undefined
           }
         />
       </Grid>

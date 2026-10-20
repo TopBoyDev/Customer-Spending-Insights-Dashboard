@@ -1,6 +1,6 @@
 import ArrowDownwardRounded from '@mui/icons-material/ArrowDownwardRounded';
 import ArrowUpwardRounded from '@mui/icons-material/ArrowUpwardRounded';
-import { Box, Card, Stack, Typography } from '@mui/material';
+import { Box, Card, Stack, Tooltip, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
 import { tokens } from '../../theme/theme';
 import { formatPercent } from '../../utils/format';
@@ -12,26 +12,31 @@ import { formatPercent } from '../../utils/format';
 export function ChangeBadge({ change, label }: { change: number; label: string }) {
   const Icon = change >= 0 ? ArrowUpwardRounded : ArrowDownwardRounded;
   return (
-    <Stack
-      direction="row"
-      spacing={0.25}
-      aria-label={label}
-      role="img"
-      sx={{
-        alignItems: 'center',
-        flexShrink: 0,
-        px: 0.875,
-        py: 0.25,
-        borderRadius: tokens.radius.pill,
-        bgcolor: tokens.color.accentSoft,
-        color: 'primary.main',
-      }}
-    >
-      <Icon aria-hidden sx={{ fontSize: 14 }} />
-      <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700 }}>
-        {formatPercent(Math.abs(change))}
-      </Typography>
-    </Stack>
+    <Tooltip title={label}>
+      <Stack
+        direction="row"
+        spacing={0.25}
+        aria-label={label}
+        role="img"
+        tabIndex={0}
+        sx={{
+          outline: 'none',
+          '&:focus-visible': { outline: `2px solid ${tokens.color.accentLight}`, outlineOffset: 2 },
+          alignItems: 'center',
+          flexShrink: 0,
+          px: 0.875,
+          py: 0.25,
+          borderRadius: tokens.radius.pill,
+          bgcolor: tokens.color.accentSoft,
+          color: tokens.color.accentFg,
+        }}
+      >
+        <Icon aria-hidden sx={{ fontSize: 14 }} />
+        <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700 }}>
+          {formatPercent(Math.abs(change))}
+        </Typography>
+      </Stack>
+    </Tooltip>
   );
 }
 
@@ -52,10 +57,14 @@ interface StatCardProps {
 export function StatCard({ icon, label, value, footnote, badge }: StatCardProps) {
   return (
     <Card sx={{ height: '100%', p: tokens.cardPadding, display: 'flex', flexDirection: 'column' }}>
+      {/* On phones the icon sits above the label so half-width cards never truncate it. */}
       <Stack
-        direction="row"
-        spacing={1.5}
-        sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}
+        sx={{
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          gap: 1.5,
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+        }}
       >
         <Typography
           variant="body2"
@@ -86,7 +95,7 @@ export function StatCard({ icon, label, value, footnote, badge }: StatCardProps)
         component="p"
         noWrap
         sx={{
-          fontSize: { xs: '1.375rem', sm: '1.625rem' },
+          fontSize: { xs: '1.375rem', sm: '1.5rem' },
           fontWeight: 700,
           letterSpacing: '-0.025em',
           lineHeight: 1.2,

@@ -231,3 +231,45 @@ test('core controls work with the keyboard alone', async ({ page, isMobile }) =>
     'true',
   );
 });
+
+test('dark mode can be switched on, persists across reloads and stays accessible', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/');
+  await expect(heading(page, 'Overview')).toBeVisible();
+  const background = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const lightBackground = await background();
+
+  if (isMobile) {
+    await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+    await expect(page.getByRole('button', { name: 'Switch to light mode' })).toBeVisible();
+  } else {
+    const themeGroup = page.getByRole('group', { name: 'Colour theme' });
+    await themeGroup.getByRole('button', { name: 'Dark' }).click();
+    await expect(themeGroup.getByRole('button', { name: 'Dark' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  }
+  await expect.poll(background).not.toBe(lightBackground);
+
+  await page.reload();
+  await expect(heading(page, 'Overview')).toBeVisible();
+  await expect.poll(background).not.toBe(lightBackground);
+
+  for (const name of VIEWS) {
+    await page.goto(`/?view=${name.toLowerCase()}`);
+    await expect(heading(page, name)).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'])
+      .analyze();
+    const serious = results.violations.filter(
+      (v) => v.impact === 'serious' || v.impact === 'critical',
+    );
+    expect(
+      serious.map((v) => `${name} ${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(', ')}`),
+    ).toEqual([]);
+  }
+});

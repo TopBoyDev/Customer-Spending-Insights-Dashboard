@@ -166,9 +166,9 @@ export function TransactionsPanel({
                     alignSelf: 'center',
                     '& .MuiPaginationItem-root': { borderRadius: '10px', fontWeight: 600 },
                     '& .MuiPaginationItem-root.Mui-selected': {
-                      bgcolor: 'primary.main',
-                      color: 'common.white',
-                      '&:hover, &.Mui-focusVisible': { bgcolor: 'primary.main' },
+                      bgcolor: tokens.color.accent,
+                      color: tokens.color.onAccent,
+                      '&:hover, &.Mui-focusVisible': { bgcolor: tokens.color.accent },
                     },
                   }}
                   aria-label="Transaction pages"
