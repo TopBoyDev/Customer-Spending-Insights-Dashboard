@@ -30,4 +30,6 @@ if (typeof window !== 'undefined') {
     }) as MediaQueryList;
 
   Element.prototype.scrollIntoView ??= () => {};
+  // jsdom defines scrollTo but throws "not implemented".
+  window.scrollTo = () => {};
 }

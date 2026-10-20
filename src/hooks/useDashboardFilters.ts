@@ -8,12 +8,14 @@ import {
   type Period,
   type TransactionSort,
 } from '../../shared/types';
+import { DEFAULT_VIEW, isView, type View } from '../navigation';
 
 export const TREND_MONTH_OPTIONS = [6, 12, 24] as const;
 export type TrendMonths = (typeof TREND_MONTH_OPTIONS)[number];
 export const DEFAULT_TREND_MONTH_OPTION: TrendMonths = 12;
 
 export interface DashboardFilters {
+  view: View;
   period: Period;
   months: TrendMonths;
   category: CategoryName | null;
@@ -22,6 +24,7 @@ export interface DashboardFilters {
 }
 
 const DEFAULTS: DashboardFilters = {
+  view: DEFAULT_VIEW,
   period: DEFAULT_PERIOD,
   months: DEFAULT_TREND_MONTH_OPTION,
   category: null,
@@ -32,6 +35,7 @@ const DEFAULTS: DashboardFilters = {
 /** Parses URL search params. Unknown or malformed values fall back to safe defaults. */
 export function parseFilters(search: string): DashboardFilters {
   const params = new URLSearchParams(search);
+  const view = params.get('view');
   const period = params.get('period');
   const months = Number(params.get('months'));
   const category = params.get('category');
@@ -39,6 +43,7 @@ export function parseFilters(search: string): DashboardFilters {
   const page = Number(params.get('page'));
 
   return {
+    view: isView(view) ? view : DEFAULTS.view,
     period: (PERIODS as readonly string[]).includes(period ?? '')
       ? (period as Period)
       : DEFAULTS.period,
@@ -56,6 +61,7 @@ export function parseFilters(search: string): DashboardFilters {
 /** Serialises filters, omitting defaults to keep shared URLs short. */
 export function serializeFilters(filters: DashboardFilters): string {
   const params = new URLSearchParams();
+  if (filters.view !== DEFAULTS.view) params.set('view', filters.view);
   if (filters.period !== DEFAULTS.period) params.set('period', filters.period);
   if (filters.months !== DEFAULTS.months) params.set('months', String(filters.months));
   if (filters.category) params.set('category', filters.category);
@@ -78,16 +84,24 @@ function subscribe(callback: () => void) {
 
 const getSearch = () => window.location.search;
 
+export interface UpdateOptions {
+  /**
+   * Push a new history entry (used when switching tabs, so the browser back
+   * button returns to the previous tab). Filter tweaks replace the entry.
+   */
+  push?: boolean;
+}
+
 /**
- * Dashboard filter state lives in the URL so a filtered view survives a
- * refresh and can be shared. Changing any filter that affects the
+ * Dashboard state (active tab and filters) lives in the URL so any view
+ * survives a refresh and can be shared. Changing any filter that affects the
  * transaction result set returns pagination to page 1.
  */
 export function useDashboardFilters() {
   const search = useSyncExternalStore(subscribe, getSearch, () => '');
   const filters = useMemo(() => parseFilters(search), [search]);
 
-  const update = useCallback((changes: Partial<DashboardFilters>) => {
+  const update = useCallback((changes: Partial<DashboardFilters>, options: UpdateOptions = {}) => {
     const current = parseFilters(window.location.search);
     const resetsPage =
       ('period' in changes && changes.period !== current.period) ||
@@ -98,10 +112,16 @@ export function useDashboardFilters() {
       ...changes,
       page: changes.page ?? (resetsPage ? 1 : current.page),
     };
-    const url = `${window.location.pathname}${serializeFilters(next)}${window.location.hash}`;
-    window.history.replaceState(window.history.state, '', url);
+    const url = `${window.location.pathname}${serializeFilters(next)}`;
+    if (options.push) window.history.pushState(null, '', url);
+    else window.history.replaceState(window.history.state, '', url);
     window.dispatchEvent(new Event(URL_CHANGE_EVENT));
   }, []);
 
   return { filters, update };
+}
+
+/** Builds the URL for a view, keeping the current filters (for real links). */
+export function hrefForView(view: View, search: string): string {
+  return serializeFilters({ ...parseFilters(search), view }) || '?';
 }

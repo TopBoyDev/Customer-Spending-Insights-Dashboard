@@ -6,9 +6,11 @@ Built with **React 18, TypeScript (strict), Material UI, TanStack Query and Rech
 
 > **Take-home assessment (Software Engineer: UX Developer).** This is a concept demonstration, not an official banking product. The customer, merchants and transactions are fictional and generated deterministically.
 
-| Desktop                                                                                  | Mobile                                                                                |
-| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| <img src="docs/screenshots/desktop.png" alt="Dashboard on a desktop screen" width="560"> | <img src="docs/screenshots/mobile.png" alt="Dashboard on a phone screen" width="200"> |
+<img src="docs/screenshots/desktop-overview.png" alt="Overview tab on a desktop screen: total spent, category split, monthly budgets, monthly trend and recent transactions" width="820">
+
+| Transactions tab                                                                                                            | Phone: Overview                                                                                                | Phone: Budgets                                                                       |
+| --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| <img src="docs/screenshots/desktop-transactions.png" alt="Transactions tab with filters, table and pagination" width="420"> | <img src="docs/screenshots/mobile-overview.png" alt="Overview on a phone with the bottom tab bar" width="190"> | <img src="docs/screenshots/mobile-budgets.png" alt="Budgets on a phone" width="190"> |
 
 ---
 
@@ -64,8 +66,8 @@ The first time you run end-to-end tests, install the browser with `npx playwrigh
 - **Unit:** date boundaries in Africa/Johannesburg (including UTC instants that fall on the next local day), leap years, equal-length previous periods, percentage change with a zero denominator, rounding (`1.005 → 1.01`), category tie-breaking, zero-spend months, goal thresholds (79.99 / 80 / 100 / 100.01 %), stable sorting, pagination without gaps or duplicates, URL-filter parsing and fallbacks, currency/percentage/date formatting, and trend insights.
 - **Data consistency:** for every period, summary total = category total = transaction count, percentages sum to about 100 %, and the dataset is identical on every generation.
 - **API:** every endpoint's response shape, defaults, filtering, sorting and pagination; 400s for each invalid parameter; 404s for unknown customers and routes; no stack traces leaked; `Cache-Control: no-store` and security headers.
-- **Components:** loading, success, error with retry (which really re-requests), and empty states; labelled filter controls; category rows; accessible goal progress; one failing endpoint not breaking other sections. Tests render against the real mock API on an ephemeral port, with per-test overrides for failures.
-- **End-to-end:** first load with no console errors; period change updates figures and URL; category filter → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; no horizontal scroll; **axe-core WCAG 2.2 AA scan with zero serious/critical violations**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow.
+- **Components:** loading, success, error with retry (which really re-requests), and empty states; labelled filter controls; category rows; accessible goal progress; one failing endpoint not breaking other cards; tab navigation updating URL, title and focus; and category selection opening filtered transactions. Tests render against the real mock API on an ephemeral port, with per-test overrides for failures.
+- **End-to-end:** first load with no console errors; every tab reachable from the navigation, with back-button support; Overview cards open their tabs; period change updates figures and URL across tabs; category → filtered transactions → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; **no horizontal scroll and an axe-core WCAG 2.2 AA scan with zero serious/critical violations on every tab**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow through the tab list.
 
 CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above on every push and pull request, then builds the Docker image and smoke-tests the running container.
 
@@ -73,14 +75,23 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above 
 
 ## Features
 
-- **Spending summary.** The selected period's total is the dominant figure ("You spent R 19 004,60 in the last 30 days"), with a neutral comparison to the previous equal-length period, plus transaction count, average transaction and top category.
-- **Global period filter** (7 days / 30 days / 90 days / 1 year) drives the summary, category breakdown and transactions together, so the numbers on screen always describe the same date range.
-- **Spending by category.** A donut chart plus a list with exact Rand amounts, percentages and transaction counts. Selecting a category filters the transactions, scrolls to them and moves keyboard focus there.
-- **Monthly trend** (6 / 12 / 24 months), labelled as independent of the period filter. The in-progress month is drawn lighter and excluded from the average. Plain-language takeaways (average, highest/lowest month, latest month-on-month change) and a toggleable data table mean the insight never depends on reading the chart or hovering.
+The app is organised like a modern banking app: an **Overview** dashboard plus four focused tabs (**Categories, Trends, Transactions, Budgets**). Each Overview card summarises one area and links to its tab, so you see the headline numbers at a glance and open the detail only when you want it. Tabs sit under the top bar on tablet and desktop, and become a bottom tab bar on phones.
+
+- **Overview.** Total spent for the selected period as the hero figure, with a neutral comparison to the previous equal-length period, plus transaction count, average transaction and top category. Below it: where the money went (one proportion bar and a legend), monthly budgets at a glance, a six-month mini trend and the five most recent transactions.
+- **Global period filter** (7 days / 30 days / 90 days / 1 year) shared by Overview, Categories and Transactions, so the numbers always describe the same date range.
+- **Categories.** A donut chart with the total, and a breakdown listing each category's amount, share and transaction count. Selecting a category opens the Transactions tab filtered to it.
+- **Trends** (6 / 12 / 24 months), independent of the period filter. Stat cards for the monthly average and highest/lowest month; a bar chart where the in-progress month is drawn lighter and excluded from the average; plain-language takeaways and a toggleable data table, so the insight never depends on reading the chart or hovering.
 - **Transactions.** Category filter, four sort orders and pagination. A semantic table on desktop; day-grouped cards on mobile, which are not grouped when sorting by amount. An announced "Showing 11–20 of 132" status. The current page stays visible while the next one loads.
-- **Monthly budgets.** Month-to-date progress for each goal, stating "On track" / "Nearing limit" / "Over budget" in text and icon (not colour alone), plus the amount left or over and the days remaining.
-- **Shareable state.** Period, trend range, category, sort and page are kept in the URL (`?period=90d&category=Groceries&sortBy=amount_desc&page=2`). Defaults are omitted, and invalid values fall back safely.
-- **Resilient sections.** Each section has its own skeleton, error-with-retry and empty state. A failing endpoint never blanks the rest of the page. An error boundary catches unexpected rendering failures.
+- **Budgets.** Month-to-date totals, then one card per budget with "On track" / "Nearing limit" / "Over budget" in words, progress, and a suggested daily allowance for the rest of the month ("R 886,27 left · about R 73,86 a day").
+- **Shareable, app-like navigation.** The active tab and every filter are kept in the URL (`?view=transactions&period=90d&category=Groceries&sortBy=amount_desc&page=2`). Refresh restores the view, the browser back button moves between tabs, and each tab is a real link (it can be opened in a new browser tab). Invalid values fall back safely.
+- **Resilient cards.** Each card has its own skeleton, error-with-retry and empty state. A failing endpoint never blanks the rest of the page. An error boundary catches unexpected rendering failures.
+
+## Visual design
+
+- **Restrained colour.** A neutral grey and white base, near-black ink for text and progress bars, and a single blue accent reserved for the primary data series, the selected bottom-bar item and focus rings.
+- **Category colours** (from the API contract) appear only as small dots, chart slices and proportion bars, always next to the category name. Category icons are monochrome.
+- **Status colour** is limited to a small dot beside the status word. The only full-colour warning is a red progress bar when a budget is exceeded.
+- **Typography and layout.** Self-hosted Inter (no third-party font requests), tabular numerals so amounts line up, hairline-bordered cards with generous spacing, and one clear hero number per screen.
 
 ## Architecture
 
@@ -95,8 +106,10 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above 
 │   ├── app.ts              Security headers, compression, /api router, static files + SPA fallback
 │   └── index.ts            Config, listen, graceful shutdown
 ├── src/
-│   ├── components/         dashboard/, spending/, goals/, transactions/, states/, common/
-│   ├── hooks/              useDashboardFilters (URL state), useInsightsQueries (TanStack Query)
+│   ├── views/              One component per tab: Overview, Categories, Trends, Transactions, Budgets
+│   ├── components/         layout/ (app shell, tabs, page header), overview/ (summary cards), transactions/, states/, common/
+│   ├── navigation.ts       Tab definitions
+│   ├── hooks/              useDashboardFilters (tab + filter URL state), useInsightsQueries (TanStack Query)
 │   ├── services/           Typed fetch client with ApiError; QueryClient defaults
 │   ├── theme/              Design tokens and MUI theme
 │   └── utils/              Formatting (en-ZA, ZAR, Africa/Johannesburg), insight copy, accessibility helpers
@@ -133,11 +146,12 @@ Only customer `12345` exists. Other IDs return 404.
 
 ## UX and accessibility
 
-- Mobile-first layout, checked from 360 px to 1440 px with no horizontal scrolling. The period selector sits in a sticky header so it is always reachable.
+- Mobile-first layout, checked from 360 px to 1440 px with no horizontal scrolling on any tab.
+- Tab changes behave like page changes: the document title updates, the page scrolls to the top, and focus moves to the new tab's heading, so screen-reader and keyboard users know where they are. The desktop tab list supports arrow-key navigation.
 - Plain-language copy with the comparison basis spelled out ("3,8% more than the previous 30 days"). Increases are not coloured red, because spending more is not automatically bad.
 - Rand formatted with `Intl.NumberFormat('en-ZA', { currency: 'ZAR' })` everywhere. Expenses are shown as debits (−R 262,38).
 - Semantic landmarks and headings, labelled `section` regions, a skip link, visible focus rings, labelled form controls, and announced loading and result-count status.
-- Charts: the donut has a text summary and a full list equivalent; the trend has written takeaways and a data table. Contract category colours appear only as tints and swatches next to text, never as text colour (several are too light for text contrast).
+- Charts: the donut has a text summary and a full list equivalent; the trend has written takeaways and a data table. Category colours are never used as text colour (several are too light for text contrast), and status is always stated in words.
 - `prefers-reduced-motion` disables chart and UI animations.
 
 ## Configuration

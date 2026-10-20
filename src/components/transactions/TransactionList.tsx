@@ -3,6 +3,7 @@ import { toLocalDate } from '../../../shared/dates';
 import type { Transaction } from '../../../shared/types';
 import { formatCurrency, formatDayHeading, formatTransactionTime } from '../../utils/format';
 import { groupByDay } from '../../utils/transactions';
+import { CategoryDot } from '../common/CategoryDot';
 import { CategoryIcon } from '../common/CategoryIcon';
 
 function TransactionCard({ transaction }: { transaction: Transaction }) {
@@ -13,15 +14,17 @@ function TransactionCard({ transaction }: { transaction: Transaction }) {
       spacing={1.5}
       sx={{ alignItems: 'center', py: 1.25, listStyle: 'none' }}
     >
-      <CategoryIcon icon={transaction.icon} color={transaction.categoryColor} />
+      <CategoryIcon icon={transaction.icon} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="subtitle2" noWrap>
           {transaction.merchant}
         </Typography>
-        <Typography variant="caption" color="text.secondary" component="p" noWrap>
-          {transaction.category} · {transaction.description} ·{' '}
-          {formatTransactionTime(transaction.date)}
-        </Typography>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
+          <CategoryDot color={transaction.categoryColor} size={6} />
+          <Typography variant="caption" component="p" noWrap>
+            {transaction.category} · {formatTransactionTime(transaction.date)}
+          </Typography>
+        </Stack>
       </Box>
       <Typography variant="subtitle2" sx={{ whiteSpace: 'nowrap' }}>
         −{formatCurrency(transaction.amount)}

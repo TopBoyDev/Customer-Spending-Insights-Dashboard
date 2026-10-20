@@ -12,6 +12,7 @@ import {
 import type { Transaction } from '../../../shared/types';
 import { formatCurrency, formatTransactionDate, formatTransactionTime } from '../../utils/format';
 import { visuallyHiddenSx } from '../../utils/a11y';
+import { CategoryDot } from '../common/CategoryDot';
 import { CategoryIcon } from '../common/CategoryIcon';
 
 /** Semantic table for wider screens. */
@@ -52,25 +53,26 @@ export function TransactionTable({
             <TableRow key={transaction.id} hover>
               <TableCell sx={{ whiteSpace: 'nowrap' }}>
                 <Typography variant="body2">{formatTransactionDate(transaction.date)}</Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" component="p">
                   {formatTransactionTime(transaction.date)}
                 </Typography>
               </TableCell>
               <TableCell component="th" scope="row" sx={{ fontWeight: 400 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {transaction.merchant}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {transaction.description}
-                </Typography>
+                <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                  <CategoryIcon icon={transaction.icon} size={32} />
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {transaction.merchant}
+                    </Typography>
+                    <Typography variant="caption" component="p">
+                      {transaction.description}
+                    </Typography>
+                  </Box>
+                </Stack>
               </TableCell>
               <TableCell>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <CategoryIcon
-                    icon={transaction.icon}
-                    color={transaction.categoryColor}
-                    size={28}
-                  />
+                  <CategoryDot color={transaction.categoryColor} />
                   <Typography variant="body2">{transaction.category}</Typography>
                 </Stack>
               </TableCell>

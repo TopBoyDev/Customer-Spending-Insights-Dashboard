@@ -5,9 +5,9 @@ import RestaurantOutlined from '@mui/icons-material/RestaurantOutlined';
 import ShoppingBagOutlined from '@mui/icons-material/ShoppingBagOutlined';
 import ShoppingCartOutlined from '@mui/icons-material/ShoppingCartOutlined';
 import { Box, type SvgIconProps } from '@mui/material';
-import { alpha } from '@mui/material/styles';
 import type { ComponentType } from 'react';
 import type { CategoryIcon as CategoryIconName } from '../../../shared/categories';
+import { tokens } from '../../theme/theme';
 
 const ICONS: Record<CategoryIconName, ComponentType<SvgIconProps>> = {
   'shopping-cart': ShoppingCartOutlined,
@@ -18,18 +18,11 @@ const ICONS: Record<CategoryIconName, ComponentType<SvgIconProps>> = {
   zap: BoltOutlined,
 };
 
-interface CategoryIconProps {
-  icon: CategoryIconName;
-  color: string;
-  size?: number;
-}
-
 /**
- * Category badge. The category colour is only a tinted background; the icon is
- * drawn in dark text colour so it keeps sufficient contrast for light hues.
- * Decorative: the category name is always shown as text next to it.
+ * Monochrome category glyph on a neutral tile. Decorative: the category name is
+ * always shown as text alongside, and colour is carried by a CategoryDot.
  */
-export function CategoryIcon({ icon, color, size = 36 }: CategoryIconProps) {
+export function CategoryIcon({ icon, size = 36 }: { icon: CategoryIconName; size?: number }) {
   const Icon = ICONS[icon];
   return (
     <Box
@@ -39,15 +32,14 @@ export function CategoryIcon({ icon, color, size = 36 }: CategoryIconProps) {
         width: size,
         height: size,
         flexShrink: 0,
-        borderRadius: '50%',
+        borderRadius: `${Math.round(size * 0.3)}px`,
         display: 'grid',
         placeItems: 'center',
-        bgcolor: alpha(color, 0.22),
-        color: 'text.primary',
-        boxShadow: `inset 0 0 0 1.5px ${color}`,
+        bgcolor: tokens.color.surfaceMuted,
+        color: 'text.secondary',
       }}
     >
-      <Icon sx={{ fontSize: size * 0.55 }} />
+      <Icon sx={{ fontSize: size * 0.5 }} />
     </Box>
   );
 }

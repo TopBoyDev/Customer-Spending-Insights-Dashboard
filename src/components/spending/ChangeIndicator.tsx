@@ -12,21 +12,15 @@ const ICONS = {
 } as const;
 
 /**
- * Direction is conveyed by an arrow and words. Colour stays neutral on purpose:
- * spending more is not inherently bad, so we avoid red/green judgement.
+ * Direction is conveyed by an arrow and words in neutral colour: spending more
+ * is not inherently bad, so there is no red/green judgement.
  */
-export function ChangeIndicator({
-  change,
-  size = 'body2',
-}: {
-  change: ChangeDescription;
-  size?: 'body1' | 'body2';
-}) {
+export function ChangeIndicator({ change }: { change: ChangeDescription }) {
   const Icon = ICONS[change.direction];
   return (
-    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-      <Icon aria-hidden sx={{ fontSize: size === 'body1' ? 20 : 16, color: 'primary.main' }} />
-      <Typography variant={size} color="text.secondary">
+    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', color: 'text.secondary' }}>
+      <Icon aria-hidden sx={{ fontSize: 16 }} />
+      <Typography variant="caption" component="span">
         {change.text}
       </Typography>
     </Stack>
