@@ -24,7 +24,7 @@ export function RecentTransactions({ period, onMore }: { period: Period; onMore:
           ? `${query.data.pagination.total} in the ${PERIOD_LABEL[period]}`
           : `The ${PERIOD_LABEL[period]}`
       }
-      more={{ label: 'View all transactions', onClick: onMore }}
+      more={{ label: 'transactions', onClick: onMore }}
     >
       <SectionState
         query={query}

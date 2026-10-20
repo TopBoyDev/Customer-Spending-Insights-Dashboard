@@ -1,3 +1,6 @@
+import AccountBalanceWalletOutlined from '@mui/icons-material/AccountBalanceWalletOutlined';
+import PaymentsOutlined from '@mui/icons-material/PaymentsOutlined';
+import SavingsOutlined from '@mui/icons-material/SavingsOutlined';
 import {
   Box,
   Card,
@@ -12,10 +15,12 @@ import { toMonthKey } from '../../shared/dates';
 import type { SpendingGoal } from '../../shared/types';
 import { CategoryDot } from '../components/common/CategoryDot';
 import { CategoryIcon } from '../components/common/CategoryIcon';
+import { StatCard } from '../components/common/StatCard';
 import { StatusLabel } from '../components/common/StatusLabel';
 import { PageHeader } from '../components/layout/PageHeader';
 import { EmptyState, SectionState } from '../components/states/SectionState';
 import { useApiMeta, useSpendingGoals } from '../hooks/useInsightsQueries';
+import { tokens } from '../theme/theme';
 import { formatCurrency, formatMonthLong, formatPercent } from '../utils/format';
 import { budgetBarColor } from '../utils/goals';
 
@@ -31,7 +36,7 @@ export function GoalCard({ goal }: { goal: SpendingGoal }) {
   const remaining = goal.monthlyBudget - goal.currentSpent;
 
   return (
-    <Card sx={{ p: 2.5, height: '100%' }}>
+    <Card sx={{ p: tokens.cardPadding, height: '100%' }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <CategoryIcon icon={category.icon} size={36} />
         <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -76,55 +81,27 @@ export function GoalCard({ goal }: { goal: SpendingGoal }) {
 function Totals({ goals }: { goals: SpendingGoal[] }) {
   const budget = goals.reduce((sum, goal) => sum + goal.monthlyBudget, 0);
   const spent = goals.reduce((sum, goal) => sum + goal.currentSpent, 0);
-  const items = [
-    { label: 'Total budgeted', value: formatCurrency(budget) },
-    { label: 'Spent so far', value: formatCurrency(spent) },
-    {
-      label: budget - spent >= 0 ? 'Remaining' : 'Over budget',
-      value: formatCurrency(Math.abs(budget - spent)),
-    },
-  ];
+  const remaining = budget - spent;
   return (
-    <Card sx={{ p: { xs: 2, sm: 3 }, mb: { xs: 2, md: 2.5 } }}>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-          gap: { xs: 1.25, sm: 0 },
-          '& > *:not(:first-of-type)': {
-            borderLeft: { sm: 1 },
-            borderColor: { sm: 'divider' },
-            pl: { sm: 3 },
-          },
-        }}
-      >
-        {items.map((item) => (
-          <Stack
-            key={item.label}
-            direction={{ xs: 'row', sm: 'column' }}
-            sx={{
-              justifyContent: 'space-between',
-              alignItems: { xs: 'baseline', sm: 'flex-start' },
-            }}
-          >
-            <Typography variant="caption" component="p">
-              {item.label}
-            </Typography>
-            <Typography
-              component="p"
-              sx={{
-                fontSize: { xs: '1rem', sm: '1.375rem' },
-                fontWeight: 650,
-                letterSpacing: '-0.02em',
-                mt: { sm: 0.5 },
-              }}
-            >
-              {item.value}
-            </Typography>
-          </Stack>
-        ))}
-      </Box>
-    </Card>
+    <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <StatCard
+          icon={<AccountBalanceWalletOutlined />}
+          label="Total budgeted"
+          value={formatCurrency(budget)}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <StatCard icon={<PaymentsOutlined />} label="Spent so far" value={formatCurrency(spent)} />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <StatCard
+          icon={<SavingsOutlined />}
+          label={remaining >= 0 ? 'Remaining' : 'Over budget'}
+          value={formatCurrency(Math.abs(remaining))}
+        />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -161,7 +138,7 @@ export function BudgetsView() {
         {(data) => (
           <>
             <Totals goals={data.goals} />
-            <Grid component="ul" container spacing={{ xs: 2, md: 2.5 }} sx={{ m: 0, p: 0 }}>
+            <Grid component="ul" container spacing={{ xs: 2, md: 3 }} sx={{ m: 0, p: 0 }}>
               {data.goals.map((goal) => (
                 <Grid
                   key={goal.id}

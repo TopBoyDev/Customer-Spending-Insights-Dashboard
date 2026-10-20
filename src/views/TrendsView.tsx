@@ -1,7 +1,9 @@
+import InsightsOutlined from '@mui/icons-material/InsightsOutlined';
+import TrendingDownRounded from '@mui/icons-material/TrendingDownRounded';
+import TrendingUpRounded from '@mui/icons-material/TrendingUpRounded';
 import {
   Box,
   Button,
-  Card,
   Collapse,
   Grid2 as Grid,
   Skeleton,
@@ -18,7 +20,7 @@ import {
   useMediaQuery,
   type Theme,
 } from '@mui/material';
-import { useId, useState, type ReactNode } from 'react';
+import { useId, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -32,7 +34,9 @@ import {
 } from 'recharts';
 import { toMonthKey } from '../../shared/dates';
 import type { MonthlyTrend } from '../../shared/types';
+import { barGradientDefs, svgSafeId } from '../utils/charts';
 import { SectionCard } from '../components/common/SectionCard';
+import { StatCard } from '../components/common/StatCard';
 import { PageHeader } from '../components/layout/PageHeader';
 import { EmptyState, SectionState } from '../components/states/SectionState';
 import { TREND_MONTH_OPTIONS, type TrendMonths } from '../hooks/useDashboardFilters';
@@ -96,6 +100,7 @@ function TrendChart({
   averageMonthly: number | null;
 }) {
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const gradientId = svgSafeId(`trend-chart-${useId()}`);
   const isNarrow = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
   // Let Recharts skip labels that would collide on small screens or long ranges.
   const compactAxis = isNarrow || points.length > 12;
@@ -104,6 +109,7 @@ function TrendChart({
     <Box sx={{ width: '100%', height: { xs: 240, sm: 300 } }} aria-hidden>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+          {barGradientDefs(gradientId)}
           <CartesianGrid vertical={false} stroke={tokens.color.border} strokeDasharray="3 3" />
           <XAxis
             dataKey="label"
@@ -136,14 +142,14 @@ function TrendChart({
           )}
           <Bar
             dataKey="totalSpent"
-            radius={[4, 4, 0, 0]}
+            radius={[8, 8, 2, 2]}
             isAnimationActive={!reduceMotion}
-            maxBarSize={36}
+            maxBarSize={32}
           >
             {points.map((point) => (
               <Cell
                 key={point.month}
-                fill={point.isPartial ? tokens.color.chartMuted : tokens.color.accent}
+                fill={point.isPartial ? tokens.color.chartMuted : `url(#${gradientId})`}
               />
             ))}
           </Bar>
@@ -189,27 +195,6 @@ function TrendTable({ points, id }: { points: ChartPoint[]; id: string }) {
         </TableBody>
       </Table>
     </TableContainer>
-  );
-}
-
-function StatCard({ label, value, detail }: { label: string; value: ReactNode; detail?: string }) {
-  return (
-    <Card sx={{ p: 2.5, height: '100%' }}>
-      <Typography variant="caption" component="p">
-        {label}
-      </Typography>
-      <Typography
-        component="p"
-        sx={{ fontSize: '1.375rem', fontWeight: 650, letterSpacing: '-0.02em', mt: 0.5 }}
-      >
-        {value}
-      </Typography>
-      {detail && (
-        <Typography variant="caption" component="p" sx={{ mt: 0.25 }}>
-          {detail}
-        </Typography>
-      )}
-    </Card>
   );
 }
 
@@ -270,30 +255,33 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
           return (
             <Grid
               container
-              spacing={{ xs: 2, md: 2.5 }}
+              spacing={{ xs: 2, md: 3 }}
               sx={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}
             >
               <Grid size={{ xs: 12, sm: 4 }}>
                 <StatCard
+                  icon={<InsightsOutlined />}
                   label="Monthly average"
                   value={
                     insight.averageMonthly === null ? '—' : formatCurrency(insight.averageMonthly)
                   }
-                  detail={`${insight.completeMonths.length} complete months`}
+                  supporting={`${insight.completeMonths.length} complete months`}
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <StatCard
+                  icon={<TrendingUpRounded />}
                   label="Highest month"
                   value={insight.highest ? formatCurrency(insight.highest.totalSpent) : '—'}
-                  detail={insight.highest ? formatMonthLong(insight.highest.month) : undefined}
+                  supporting={insight.highest ? formatMonthLong(insight.highest.month) : undefined}
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <StatCard
+                  icon={<TrendingDownRounded />}
                   label="Lowest month"
                   value={insight.lowest ? formatCurrency(insight.lowest.totalSpent) : '—'}
-                  detail={insight.lowest ? formatMonthLong(insight.lowest.month) : undefined}
+                  supporting={insight.lowest ? formatMonthLong(insight.lowest.month) : undefined}
                 />
               </Grid>
               <Grid size={12}>
@@ -305,12 +293,16 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
                   action={
                     <Button
                       size="small"
-                      variant="outlined"
-                      color="inherit"
+
                       onClick={() => setShowTable((value) => !value)}
                       aria-expanded={showTable}
                       aria-controls={tableId}
-                      sx={{ borderColor: 'divider' }}
+                      sx={{
+                        bgcolor: tokens.color.surfaceMuted,
+                        color: 'text.primary',
+                        px: 1.5,
+                        '&:hover': { bgcolor: tokens.color.accentSoft },
+                      }}
                     >
                       {showTable ? 'Hide data table' : 'Show data table'}
                     </Button>

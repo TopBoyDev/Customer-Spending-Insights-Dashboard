@@ -33,6 +33,8 @@ const VIEW_ICON: Record<View, ComponentType<SvgIconProps>> = {
 
 export const MAIN_ID = 'main-content';
 export const SIDEBAR_WIDTH = 248;
+/** Gap between the floating sidebar and the viewport edge, in px. */
+const SHELL_GAP = 16;
 
 interface AppShellProps {
   view: View;
@@ -59,26 +61,32 @@ function handleLinkClick(event: MouseEvent, navigate: () => void) {
   navigate();
 }
 
-function Brand() {
+function Brand({ inverse = false }: { inverse?: boolean }) {
   return (
     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
       <Box
         aria-hidden
         sx={{
-          width: 34,
-          height: 34,
-          borderRadius: '10px',
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
+          width: 36,
+          height: 36,
+          borderRadius: '11px',
+          bgcolor: inverse ? tokens.color.onAccent : 'primary.main',
+          color: inverse ? 'primary.main' : 'primary.contrastText',
           display: 'grid',
           placeItems: 'center',
+          boxShadow: inverse ? '0 4px 12px rgba(0, 0, 0, 0.18)' : 'none',
         }}
       >
-        <ShowChartRounded sx={{ fontSize: 21 }} />
+        <ShowChartRounded sx={{ fontSize: 22 }} />
       </Box>
       <Typography
         component="p"
-        sx={{ fontWeight: 650, fontSize: '0.9375rem', letterSpacing: '-0.01em' }}
+        sx={{
+          fontWeight: 700,
+          fontSize: '1rem',
+          letterSpacing: '-0.015em',
+          color: inverse ? tokens.color.onAccent : 'text.primary',
+        }}
       >
         Spending Insights
       </Typography>
@@ -86,17 +94,17 @@ function Brand() {
   );
 }
 
-function CustomerAvatar({ name }: { name: string }) {
+function CustomerAvatar({ name, inverse = false }: { name: string; inverse?: boolean }) {
   return (
     <Avatar
       aria-hidden
       sx={{
-        width: 36,
-        height: 36,
+        width: 38,
+        height: 38,
         fontSize: '0.8125rem',
-        fontWeight: 600,
-        bgcolor: tokens.color.accentSoft,
-        color: 'primary.main',
+        fontWeight: 700,
+        bgcolor: inverse ? 'rgba(255, 255, 255, 0.16)' : tokens.color.accentSoft,
+        color: inverse ? tokens.color.onAccent : 'primary.main',
       }}
     >
       {initials(name)}
@@ -110,13 +118,18 @@ function SidebarCustomer() {
   if (!profile.data) return null;
   return (
     <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
-      <CustomerAvatar name={profile.data.name} />
+      <CustomerAvatar name={profile.data.name} inverse />
       <Box sx={{ minWidth: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: tokens.color.onAccent }} noWrap>
           {profile.data.name}
         </Typography>
         {meta.data && (
-          <Typography variant="caption" component="p" noWrap>
+          <Typography
+            variant="caption"
+            component="p"
+            sx={{ color: tokens.color.onAccentMuted }}
+            noWrap
+          >
             Data to {formatCalendarDate(meta.data.dataAsOf)}
           </Typography>
         )}
@@ -131,22 +144,25 @@ function Sidebar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>)
       component="aside"
       sx={{
         position: 'fixed',
-        inset: '0 auto 0 0',
+        top: SHELL_GAP,
+        bottom: SHELL_GAP,
+        left: SHELL_GAP,
         width: SIDEBAR_WIDTH,
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: 'background.paper',
-        borderRight: 1,
-        borderColor: 'divider',
+        background: tokens.gradient.accent,
+        borderRadius: '24px',
+        boxShadow: tokens.shadow.accent,
         px: 2,
-        py: 3,
+        py: 3.5,
+        overflowY: 'auto',
       }}
     >
-      <Box sx={{ px: 1, mb: 4 }}>
-        <Brand />
+      <Box sx={{ px: 1.5, mb: 5 }}>
+        <Brand inverse />
       </Box>
       <Box component="nav" aria-label="Dashboard sections" sx={{ flex: 1 }}>
-        <Stack component="ul" spacing={0.5} sx={{ m: 0, p: 0, listStyle: 'none' }}>
+        <Stack component="ul" spacing={0.75} sx={{ m: 0, p: 0, listStyle: 'none' }}>
           {VIEWS.map((item) => {
             const Icon = VIEW_ICON[item];
             const selected = item === view;
@@ -161,21 +177,22 @@ function Sidebar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>)
                     width: '100%',
                     justifyContent: 'flex-start',
                     gap: 1.5,
-                    px: 1.5,
-                    py: 1.25,
-                    borderRadius: '10px',
-                    fontSize: '0.875rem',
-                    fontWeight: selected ? 600 : 500,
-                    color: selected ? 'primary.main' : 'text.secondary',
-                    bgcolor: selected ? tokens.color.accentSoft : 'transparent',
-                    transition: 'background-color 120ms, color 120ms',
+                    px: 1.75,
+                    py: 1.375,
+                    borderRadius: '12px',
+                    fontSize: '0.9rem',
+                    fontWeight: selected ? 650 : 500,
+                    color: selected ? tokens.color.onAccent : tokens.color.onAccentMuted,
+                    bgcolor: selected ? 'rgba(255, 255, 255, 0.16)' : 'transparent',
+                    transition: 'background-color 150ms, color 150ms',
                     '&:hover': {
-                      bgcolor: selected ? tokens.color.accentSoft : tokens.color.surfaceMuted,
-                      color: selected ? 'primary.main' : 'text.primary',
+                      bgcolor: selected ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.08)',
+                      color: tokens.color.onAccent,
                     },
+                    '&.Mui-focusVisible': { outline: '2px solid #FFFFFF', outlineOffset: 1 },
                   }}
                 >
-                  <Icon aria-hidden sx={{ fontSize: 20 }} />
+                  <Icon aria-hidden sx={{ fontSize: 21 }} />
                   {VIEW_LABEL[item]}
                 </ButtonBase>
               </li>
@@ -183,7 +200,14 @@ function Sidebar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>)
           })}
         </Stack>
       </Box>
-      <Box sx={{ px: 1, pt: 2, borderTop: 1, borderColor: 'divider' }}>
+      <Box
+        sx={{
+          mx: 0.5,
+          p: 1.5,
+          borderRadius: '16px',
+          bgcolor: 'rgba(255, 255, 255, 0.08)',
+        }}
+      >
         <SidebarCustomer />
       </Box>
     </Box>
@@ -199,19 +223,17 @@ function MobileTopBar() {
         position: 'sticky',
         top: 0,
         zIndex: (theme) => theme.zIndex.appBar,
-        bgcolor: 'rgba(255, 255, 255, 0.92)',
-        backdropFilter: 'saturate(180%) blur(12px)',
-        borderBottom: 1,
-        borderColor: 'divider',
+        background: tokens.gradient.accent,
+        boxShadow: '0 4px 16px -6px rgba(0, 52, 79, 0.45)',
         px: 2,
       }}
     >
       <Stack
         direction="row"
-        sx={{ height: 56, alignItems: 'center', justifyContent: 'space-between' }}
+        sx={{ height: 60, alignItems: 'center', justifyContent: 'space-between' }}
       >
-        <Brand />
-        {profile.data && <CustomerAvatar name={profile.data.name} />}
+        <Brand inverse />
+        {profile.data && <CustomerAvatar name={profile.data.name} inverse />}
       </Stack>
     </Box>
   );
@@ -303,9 +325,9 @@ export function AppShell({ view, hrefFor, onNavigate, children }: AppShellProps)
         id={MAIN_ID}
         tabIndex={-1}
         sx={{
-          ml: { md: `${SIDEBAR_WIDTH}px` },
-          px: { xs: 2, sm: 3, md: 5, lg: 6 },
-          pt: { xs: 3, md: 5 },
+          ml: { md: `${SIDEBAR_WIDTH + SHELL_GAP}px` },
+          px: { xs: 2, sm: 3, md: 4, lg: 5 },
+          pt: { xs: 3, md: 4.5 },
           pb: { xs: 12, md: 8 },
           outline: 'none',
         }}

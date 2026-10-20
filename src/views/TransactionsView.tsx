@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  Chip,
   LinearProgress,
   Pagination,
   Skeleton,
@@ -22,6 +21,7 @@ import { TransactionList } from '../components/transactions/TransactionList';
 import { TransactionTable } from '../components/transactions/TransactionTable';
 import { TRANSACTIONS_PAGE_SIZE } from '../config';
 import { useTransactions } from '../hooks/useInsightsQueries';
+import { tokens } from '../theme/theme';
 import { formatNumber, PERIOD_LABEL, SORT_LABELS } from '../utils/format';
 
 export interface TransactionFilterChanges {
@@ -68,18 +68,20 @@ export function TransactionsPanel({
   const hasFilters = category !== null || sortBy !== DEFAULT_SORT;
   const clearFilters = () => onChange({ category: null, sortBy: DEFAULT_SORT });
 
+  const data = query.data;
+  const resultSummary =
+    data && data.pagination.total > 0
+      ? data.transactions.length > 0
+        ? `Showing ${formatNumber(data.pagination.offset + 1)}–${formatNumber(data.pagination.offset + data.transactions.length)} of ${formatNumber(data.pagination.total)} transactions`
+        : 'No transactions on this page'
+      : '';
+
   return (
-    <Card component="section" aria-label="Transactions">
+    <Card component="section" aria-label="Transactions" sx={{ p: tokens.cardPadding }}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1.5}
-        sx={{
-          p: { xs: 2, sm: 2.5 },
-          justifyContent: 'space-between',
-          alignItems: { sm: 'center' },
-          borderBottom: 1,
-          borderColor: 'divider',
-        }}
+        sx={{ mb: 2.5, justifyContent: 'space-between', alignItems: { sm: 'center' } }}
       >
         <TransactionFilters
           category={category}
@@ -87,113 +89,95 @@ export function TransactionsPanel({
           onCategoryChange={(next) => onChange({ category: next })}
           onSortChange={(next) => onChange({ sortBy: next })}
         />
-        {category && (
-          <Chip
-            size="small"
-            variant="outlined"
-            label={`Category: ${category}`}
-            onDelete={() => onChange({ category: null })}
-          />
-        )}
+        <Typography variant="caption" component="p" role="status" aria-live="polite">
+          {resultSummary}
+        </Typography>
       </Stack>
-      <Box sx={{ height: 2 }}>
+      <Box sx={{ height: 2, mb: 1 }}>
         {query.isFetching && query.isPlaceholderData && (
-          <LinearProgress
-            aria-label="Loading more transactions"
-            sx={{ height: 2, borderRadius: 0 }}
-          />
+          <LinearProgress aria-label="Loading more transactions" sx={{ height: 2 }} />
         )}
       </Box>
-      <Box sx={{ p: { xs: 2, sm: 2.5 }, pt: { xs: 1.5, sm: 2 } }}>
-        <SectionState
-          query={query}
-          loadingLabel="Loading transactions"
-          skeleton={
-            <Stack spacing={1}>
-              {Array.from({ length: 6 }, (_, index) => (
-                <Skeleton key={index} variant="rounded" height={44} />
-              ))}
-            </Stack>
-          }
-          errorTitle="Your transactions could not be loaded"
-          isEmpty={(data) => data.pagination.total === 0}
-          empty={
-            <EmptyState
-              title={
-                category
-                  ? `No ${category} transactions in the ${PERIOD_LABEL[period]}`
-                  : `No transactions in the ${PERIOD_LABEL[period]}`
-              }
-              description={
-                hasFilters
-                  ? 'Try clearing the filters or choosing a longer period.'
-                  : 'Try choosing a longer period.'
-              }
-              action={
-                hasFilters && (
-                  <Button variant="outlined" onClick={clearFilters}>
-                    Clear filters
-                  </Button>
-                )
-              }
-            />
-          }
-        >
-          {(data) => {
-            const first = data.pagination.offset + 1;
-            const last = data.pagination.offset + data.transactions.length;
-            const caption = `Transactions in the ${PERIOD_LABEL[period]}${category ? `, ${category} only` : ''}, ${SORT_LABELS[sortBy].toLowerCase()}`;
-            return (
-              <Stack spacing={2}>
-                <Typography variant="caption" component="p" role="status" aria-live="polite">
-                  {data.transactions.length > 0
-                    ? `Showing ${formatNumber(first)}–${formatNumber(last)} of ${formatNumber(data.pagination.total)} transactions`
-                    : 'No transactions on this page'}
-                </Typography>
-                <Box
-                  sx={{ opacity: query.isPlaceholderData ? 0.6 : 1, transition: 'opacity 150ms' }}
-                >
-                  {isWide ? (
-                    <TransactionTable transactions={data.transactions} caption={caption} />
-                  ) : (
-                    <TransactionList
-                      transactions={data.transactions}
-                      groupByDate={sortBy.startsWith('date')}
-                    />
-                  )}
-                </Box>
-                {pageCount > 1 && (
-                  <Pagination
-                    count={pageCount}
-                    page={Math.min(page, pageCount)}
-                    onChange={(_event, next) => onChange({ page: next })}
-                    shape="rounded"
-                    siblingCount={isWide ? 1 : 0}
-                    boundaryCount={1}
-                    getItemAriaLabel={(type, itemPage, selected) => {
-                      if (type === 'page') {
-                        return `${selected ? 'Current page, ' : 'Go to '}page ${itemPage}`;
-                      }
-                      if (type === 'previous') return 'Previous page';
-                      if (type === 'next') return 'Next page';
-                      return `Go to ${type} page`;
-                    }}
-                    sx={{
-                      alignSelf: 'center',
-                      '& .MuiPaginationItem-root.Mui-selected': {
-                        bgcolor: 'primary.main',
-                        color: 'common.white',
-                        '&:hover, &.Mui-focusVisible': { bgcolor: 'primary.main' },
-                      },
-                    }}
-                    aria-label="Transaction pages"
+      <SectionState
+        query={query}
+        loadingLabel="Loading transactions"
+        skeleton={
+          <Stack spacing={1}>
+            {Array.from({ length: 6 }, (_, index) => (
+              <Skeleton key={index} variant="rounded" height={48} />
+            ))}
+          </Stack>
+        }
+        errorTitle="Your transactions could not be loaded"
+        isEmpty={(result) => result.pagination.total === 0}
+        empty={
+          <EmptyState
+            title={
+              category
+                ? `No ${category} transactions in the ${PERIOD_LABEL[period]}`
+                : `No transactions in the ${PERIOD_LABEL[period]}`
+            }
+            description={
+              hasFilters
+                ? 'Try clearing the filters or choosing a longer period.'
+                : 'Try choosing a longer period.'
+            }
+            action={
+              hasFilters && (
+                <Button variant="contained" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              )
+            }
+          />
+        }
+      >
+        {(result) => {
+          const caption = `Transactions in the ${PERIOD_LABEL[period]}${category ? `, ${category} only` : ''}, ${SORT_LABELS[sortBy].toLowerCase()}`;
+          return (
+            <Stack spacing={3}>
+              <Box sx={{ opacity: query.isPlaceholderData ? 0.6 : 1, transition: 'opacity 150ms' }}>
+                {isWide ? (
+                  <TransactionTable transactions={result.transactions} caption={caption} />
+                ) : (
+                  <TransactionList
+                    transactions={result.transactions}
+                    groupByDate={sortBy.startsWith('date')}
                   />
                 )}
-              </Stack>
-            );
-          }}
-        </SectionState>
-      </Box>
+              </Box>
+              {pageCount > 1 && (
+                <Pagination
+                  count={pageCount}
+                  page={Math.min(page, pageCount)}
+                  onChange={(_event, next) => onChange({ page: next })}
+                  shape="rounded"
+                  siblingCount={isWide ? 1 : 0}
+                  boundaryCount={1}
+                  getItemAriaLabel={(type, itemPage, selected) => {
+                    if (type === 'page') {
+                      return `${selected ? 'Current page, ' : 'Go to '}page ${itemPage}`;
+                    }
+                    if (type === 'previous') return 'Previous page';
+                    if (type === 'next') return 'Next page';
+                    return `Go to ${type} page`;
+                  }}
+                  sx={{
+                    alignSelf: 'center',
+                    '& .MuiPaginationItem-root': { borderRadius: '10px', fontWeight: 600 },
+                    '& .MuiPaginationItem-root.Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'common.white',
+                      '&:hover, &.Mui-focusVisible': { bgcolor: 'primary.main' },
+                    },
+                  }}
+                  aria-label="Transaction pages"
+                />
+              )}
+            </Stack>
+          );
+        }}
+      </SectionState>
     </Card>
   );
 }

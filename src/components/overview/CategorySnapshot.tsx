@@ -33,7 +33,7 @@ export function CategorySnapshot({ period, onMore }: { period: Period; onMore: (
           ? formatDateRange(query.data.dateRange.startDate, query.data.dateRange.endDate)
           : `The ${PERIOD_LABEL[period]}`
       }
-      more={{ label: 'View categories', onClick: onMore }}
+      more={{ label: 'categories', onClick: onMore }}
     >
       <SectionState
         query={query}

@@ -22,8 +22,18 @@ const ICONS: Record<CategoryIconName, ComponentType<SvgIconProps>> = {
  * Monochrome category glyph on a neutral tile. Decorative: the category name is
  * always shown as text alongside, and colour is carried by a CategoryDot.
  */
-export function CategoryIcon({ icon, size = 36 }: { icon: CategoryIconName; size?: number }) {
+export function CategoryIcon({
+  icon,
+  size = 36,
+  bare = false,
+}: {
+  icon: CategoryIconName;
+  size?: number;
+  /** Render only the glyph at `size`, for placing inside another container. */
+  bare?: boolean;
+}) {
   const Icon = ICONS[icon];
+  if (bare) return <Icon aria-hidden sx={{ fontSize: size }} />;
   return (
     <Box
       component="span"

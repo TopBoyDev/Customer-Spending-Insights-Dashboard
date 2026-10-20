@@ -49,11 +49,11 @@ function CategoryDonut({ data }: { data: SpendingByCategory }) {
               data={data.categories}
               dataKey="amount"
               nameKey="name"
-              innerRadius="72%"
+              innerRadius="78%"
               outerRadius="100%"
-              paddingAngle={1.5}
-              stroke={tokens.color.surface}
-              strokeWidth={2}
+              paddingAngle={3}
+              cornerRadius={6}
+              stroke="none"
               isAnimationActive={!reduceMotion}
               rootTabIndex={-1}
             >
@@ -199,7 +199,7 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
         {(data) => {
           const maxPercentage = Math.max(0, ...data.categories.map((c) => c.percentage));
           return (
-            <Grid container spacing={{ xs: 2, md: 2.5 }}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
               <Grid size={{ xs: 12, md: 5 }}>
                 <SectionCard title="Share of spending" subtitle={range}>
                   <Stack spacing={2.5} sx={{ alignItems: 'center' }}>

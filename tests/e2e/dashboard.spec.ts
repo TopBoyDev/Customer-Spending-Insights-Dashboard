@@ -62,7 +62,7 @@ test('every tab is reachable from the navigation and keeps one focus per screen'
 
 test('overview cards link to their detail tabs', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'View categories' }).click();
+  await page.getByRole('button', { name: 'View all categories' }).click();
   await expect(heading(page, 'Categories')).toBeVisible();
   await expect(
     page.getByRole('img', { name: /Donut chart of spending by category/ }),
@@ -96,9 +96,13 @@ test('category → transactions: filter, sort, paginate and survive a refresh', 
     .click();
   await expect(heading(page, 'Transactions')).toBeVisible();
   await expect(page).toHaveURL(/view=transactions.*category=Groceries/);
-  await expect(transactions(page).getByText('Category: Groceries')).toBeVisible();
+  await expect(transactions(page).getByRole('combobox', { name: /^Category/ })).toHaveText(
+    'Groceries',
+  );
 
-  await transactions(page).getByRole('combobox', { name: 'Sort by' }).click();
+  await transactions(page)
+    .getByRole('combobox', { name: /^Sort by/ })
+    .click();
   await page.getByRole('option', { name: 'Highest amount' }).click();
   await expect(page).toHaveURL(/sortBy=amount_desc/);
 
@@ -115,7 +119,7 @@ test('category → transactions: filter, sort, paginate and survive a refresh', 
   await page.reload();
   await expect(heading(page, 'Transactions')).toBeVisible();
   await expect(transactions(page).getByText(/^Showing 11–/)).toBeVisible();
-  await expect(transactions(page).getByRole('combobox', { name: 'Sort by' })).toHaveText(
+  await expect(transactions(page).getByRole('combobox', { name: /^Sort by/ })).toHaveText(
     'Highest amount',
   );
   expect(await amountsOnPage(page)).toEqual(secondPage);

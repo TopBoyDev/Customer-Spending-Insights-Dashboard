@@ -1,10 +1,12 @@
 import { Box, Skeleton, Stack, Typography, useMediaQuery } from '@mui/material';
+import { useId } from 'react';
 import { Bar, BarChart, Cell, ResponsiveContainer, XAxis } from 'recharts';
 import { toMonthKey } from '../../../shared/dates';
 import { useApiMeta, useSpendingTrends } from '../../hooks/useInsightsQueries';
 import { tokens } from '../../theme/theme';
 import { formatCurrency, formatMonthShort } from '../../utils/format';
 import { summariseTrends } from '../../utils/insights';
+import { barGradientDefs, svgSafeId } from '../../utils/charts';
 import { SectionCard } from '../common/SectionCard';
 import { EmptyState, SectionState } from '../states/SectionState';
 
@@ -14,13 +16,14 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
   const query = useSpendingTrends(SNAPSHOT_MONTHS);
   const meta = useApiMeta();
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
+  const gradientId = svgSafeId(`trend-snapshot-${useId()}`);
   const currentMonth = meta.data ? toMonthKey(meta.data.dataAsOf) : undefined;
 
   return (
     <SectionCard
       title="Monthly spending"
       subtitle={`Last ${SNAPSHOT_MONTHS} months`}
-      more={{ label: 'View trends', onClick: onMore }}
+      more={{ label: 'trends', onClick: onMore }}
     >
       <SectionState
         query={query}
@@ -54,6 +57,7 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
               <Box sx={{ height: 150 }} aria-hidden>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={points} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+                    {barGradientDefs(gradientId)}
                     <XAxis
                       dataKey="label"
                       tickLine={false}
@@ -62,14 +66,14 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
                     />
                     <Bar
                       dataKey="totalSpent"
-                      radius={[4, 4, 4, 4]}
+                      radius={[8, 8, 8, 8]}
                       maxBarSize={32}
                       isAnimationActive={!reduceMotion}
                     >
                       {points.map((point) => (
                         <Cell
                           key={point.month}
-                          fill={point.isPartial ? tokens.color.chartMuted : tokens.color.accent}
+                          fill={point.isPartial ? tokens.color.chartMuted : `url(#${gradientId})`}
                         />
                       ))}
                     </Bar>

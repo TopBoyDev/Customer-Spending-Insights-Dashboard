@@ -43,7 +43,7 @@ export function BudgetSnapshot({ onMore }: { onMore: () => void }) {
       subtitle={
         days === undefined ? month : `${month} · ${days} ${days === 1 ? 'day' : 'days'} left`
       }
-      more={{ label: 'View budgets', onClick: onMore }}
+      more={{ label: 'budgets', onClick: onMore }}
     >
       <SectionState
         query={query}

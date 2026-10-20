@@ -75,7 +75,7 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above 
 
 ## Features
 
-The app is organised like a modern banking app: an **Overview** dashboard plus four focused tabs (**Categories, Trends, Transactions, Budgets**). Each Overview card summarises one area and links to its tab, so you see the headline numbers at a glance and open the detail only when you want it. On desktop the sections are a fixed sidebar menu; on phones they become a bottom tab bar.
+The app is organised like a modern banking app: an **Overview** dashboard plus four focused tabs (**Categories, Trends, Transactions, Budgets**). Each Overview card summarises one area and links to its tab, so you see the headline numbers at a glance and open the detail only when you want it. On desktop the sections are a floating sidebar menu; on phones they become a bottom tab bar.
 
 - **Overview.** Total spent for the selected period as the hero figure, with a neutral comparison to the previous equal-length period, plus transaction count, average transaction and top category. Below it: where the money went (one proportion bar and a legend), monthly budgets at a glance, a six-month mini trend and the five most recent transactions.
 - **Global period filter** (7 days / 30 days / 90 days / 1 year) shared by Overview, Categories and Transactions, so the numbers always describe the same date range.
@@ -88,10 +88,11 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 
 ## Visual design
 
-- **Restrained colour.** A neutral grey and white base, near-black ink for text and progress bars, and a single accent, Capitec blue (`#004973`), reserved for the logo, the active menu item, focus rings and the primary data series.
-- **Category colours** (from the API contract) appear only as small dots, chart slices and proportion bars, always next to the category name. Category icons are monochrome.
-- **Status colour** is limited to a small dot beside the status word. The only full-colour warning is a red progress bar when a budget is exceeded.
-- **Typography and layout.** Self-hosted Inter (no third-party font requests), tabular numerals so amounts line up, hairline-bordered cards with generous spacing, one clear hero number per screen, and minimal copy: labels and numbers rather than explanatory sentences.
+- **Depth instead of lines.** Cards have no borders; they sit on a cool grey canvas with soft layered shadows, a 20px radius and the same 24px inner padding everywhere. Grid gaps are 24px on desktop.
+- **Contrast that guides the eye.** Capitec blue (`#004973`) is used sparingly but boldly: the floating sidebar (blue header on phones), the total-spent hero card and the selected period. Everything else is white or grey, so the blue surfaces read first.
+- **One accent.** Charts use a blue gradient; budget progress is blue, turning red only when a budget is exceeded. Category colours (from the API contract) appear only as small dots, chart slices and proportion bars, always next to the category name. Status is a small dot plus words.
+- **Modern controls.** Pill-shaped filter selects with an icon and no floating label (the accessible name is still provided), a segmented period picker, and "View all" links in card headers.
+- **Typography.** Self-hosted Inter, tabular numerals so amounts line up, and minimal copy: labels and numbers rather than explanatory sentences.
 
 ## Architecture
 

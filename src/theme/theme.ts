@@ -1,33 +1,46 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
 /**
- * Design tokens. A neutral, mostly monochrome system with a single accent
- * (Capitec blue) reserved for the brand mark, navigation, focus and the
- * primary data series. Semantic colours appear only as small status markers. Category
- * colours from the API are used solely for chart marks and small dots.
+ * Design tokens. Surfaces are separated by soft shadows rather than borders.
+ * Capitec blue is the single accent: the sidebar, the hero metric, selected
+ * controls and the primary data series. Category colours from the API appear
+ * only as chart marks and small dots; status colours only as small markers.
  *
- * All text colours meet WCAG 2.2 AA (4.5:1) against both surfaces.
+ * All text colours meet WCAG 2.2 AA (4.5:1) against the surfaces they sit on.
  */
 export const tokens = {
   color: {
     accent: '#004973',
     accentDark: '#00344F',
-    accentSoft: '#E8F0F5',
-    background: '#F6F7F9',
+    accentLight: '#2B7DAA',
+    accentSoft: '#E6EFF5',
+    background: '#F2F4F7',
     surface: '#FFFFFF',
-    surfaceMuted: '#F3F4F6',
-    border: '#E5E7EB',
-    borderStrong: '#D1D5DB',
-    textPrimary: '#111827',
-    textSecondary: '#5B6475',
-    textTertiary: '#6B7280',
+    surfaceMuted: '#F4F6F8',
+    border: '#E8EBEF',
+    textPrimary: '#101828',
+    textSecondary: '#5D6679',
+    textTertiary: '#6B7385',
+    onAccent: '#FFFFFF',
+    onAccentMuted: 'rgba(255, 255, 255, 0.74)',
     success: '#15803D',
     warning: '#B45309',
     error: '#B42318',
     chartMuted: '#B9CEDB',
-    track: '#EDEFF2',
+    track: '#EDF0F3',
   },
-  radius: { card: 16, control: 10, pill: 999 },
+  radius: { card: 20, control: 12, pill: 999 },
+  shadow: {
+    card: '0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px -6px rgba(16, 24, 40, 0.08)',
+    raised: '0 2px 4px rgba(16, 24, 40, 0.05), 0 16px 40px -8px rgba(16, 24, 40, 0.14)',
+    accent: '0 12px 32px -10px rgba(0, 73, 115, 0.55)',
+    control: '0 1px 2px rgba(16, 24, 40, 0.06), 0 2px 6px rgba(16, 24, 40, 0.06)',
+  },
+  gradient: {
+    accent: 'linear-gradient(150deg, #00598A 0%, #004973 45%, #00344F 100%)',
+  },
+  /** Card padding, in theme spacing units (8px), used by every card. */
+  cardPadding: { xs: 2.5, sm: 3 },
 } as const;
 
 const fontFamily = [
@@ -46,7 +59,7 @@ const { color } = tokens;
 export const theme = createTheme({
   palette: {
     mode: 'light',
-    primary: { main: color.accent, dark: color.accentDark, contrastText: '#FFFFFF' },
+    primary: { main: color.accent, dark: color.accentDark, contrastText: color.onAccent },
     success: { main: color.success },
     warning: { main: color.warning },
     error: { main: color.error },
@@ -57,8 +70,8 @@ export const theme = createTheme({
   shape: { borderRadius: tokens.radius.control },
   typography: {
     fontFamily,
-    h1: { fontSize: '1.5rem', fontWeight: 650, letterSpacing: '-0.02em', lineHeight: 1.25 },
-    h2: { fontSize: '1rem', fontWeight: 600, letterSpacing: '-0.01em', lineHeight: 1.4 },
+    h1: { fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.2 },
+    h2: { fontSize: '1rem', fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.4 },
     h3: { fontSize: '0.9375rem', fontWeight: 600, lineHeight: 1.4 },
     subtitle1: { fontWeight: 500 },
     subtitle2: { fontWeight: 600, fontSize: '0.875rem' },
@@ -91,16 +104,20 @@ export const theme = createTheme({
     },
     MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
     MuiCard: {
-      defaultProps: { variant: 'outlined' },
+      defaultProps: { elevation: 0 },
       styleOverrides: {
-        root: { borderColor: color.border, borderRadius: tokens.radius.card },
+        root: {
+          border: 0,
+          borderRadius: tokens.radius.card,
+          boxShadow: tokens.shadow.card,
+        },
       },
     },
     MuiButtonBase: {
       styleOverrides: {
         root: {
           '&.Mui-focusVisible': {
-            outline: `2px solid ${color.accent}`,
+            outline: `2px solid ${color.accentLight}`,
             outlineOffset: 2,
           },
         },
@@ -113,14 +130,15 @@ export const theme = createTheme({
     MuiToggleButtonGroup: {
       styleOverrides: {
         root: {
-          backgroundColor: color.surfaceMuted,
+          backgroundColor: color.surface,
           borderRadius: tokens.radius.control,
-          padding: 3,
-          gap: 2,
+          boxShadow: tokens.shadow.control,
+          padding: 4,
+          gap: 4,
         },
         grouped: {
           border: 0,
-          borderRadius: `${tokens.radius.control - 3}px !important`,
+          borderRadius: `${tokens.radius.control - 4}px !important`,
           margin: 0,
         },
       },
@@ -129,15 +147,14 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           minHeight: 34,
-          paddingInline: 12,
+          paddingInline: 14,
           fontWeight: 600,
           fontSize: '0.8125rem',
           color: color.textSecondary,
-          '&:hover': { backgroundColor: alpha(color.textPrimary, 0.04) },
+          '&:hover': { backgroundColor: color.surfaceMuted },
           '&.Mui-selected, &.Mui-selected:hover': {
-            color: color.textPrimary,
-            backgroundColor: color.surface,
-            boxShadow: '0 1px 2px rgba(17, 24, 39, 0.08), 0 0 0 1px rgba(17, 24, 39, 0.04)',
+            color: color.onAccent,
+            backgroundColor: color.accent,
           },
         },
       },
@@ -167,22 +184,17 @@ export const theme = createTheme({
           textTransform: 'uppercase',
           color: color.textSecondary,
           whiteSpace: 'nowrap',
+          borderBottom: 0,
+          backgroundColor: color.surfaceMuted,
+          '&:first-of-type': { borderTopLeftRadius: 10, borderBottomLeftRadius: 10 },
+          '&:last-of-type': { borderTopRightRadius: 10, borderBottomRightRadius: 10 },
         },
       },
     },
     MuiLinearProgress: {
       styleOverrides: {
-        root: { height: 6, borderRadius: 3, backgroundColor: color.track },
-        bar: { borderRadius: 3 },
-      },
-    },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          borderRadius: tokens.radius.control,
-          '& .MuiOutlinedInput-notchedOutline': { borderColor: color.border },
-          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: color.borderStrong },
-        },
+        root: { height: 8, borderRadius: 4, backgroundColor: color.track },
+        bar: { borderRadius: 4 },
       },
     },
     MuiChip: {
@@ -190,5 +202,30 @@ export const theme = createTheme({
     },
     MuiAlert: { styleOverrides: { root: { borderRadius: tokens.radius.control } } },
     MuiSkeleton: { styleOverrides: { root: { backgroundColor: color.surfaceMuted } } },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          marginTop: 6,
+          borderRadius: tokens.radius.control,
+          boxShadow: tokens.shadow.raised,
+        },
+        list: { padding: 6 },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          fontSize: '0.875rem',
+          minHeight: 38,
+          '&.Mui-selected': {
+            backgroundColor: color.accentSoft,
+            color: color.accent,
+            fontWeight: 600,
+          },
+          '&.Mui-selected:hover': { backgroundColor: alpha(color.accent, 0.12) },
+        },
+      },
+    },
   },
 });

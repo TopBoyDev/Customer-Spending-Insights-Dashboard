@@ -23,7 +23,7 @@ export function OverviewView({ period, onPeriodChange, onNavigate }: OverviewVie
         title="Overview"
         actions={<PeriodSelector value={period} onChange={onPeriodChange} />}
       />
-      <Grid container spacing={{ xs: 2, md: 2.5 }}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid size={12}>
           <SummaryCard period={period} />
         </Grid>

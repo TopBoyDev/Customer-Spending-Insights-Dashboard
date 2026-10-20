@@ -125,11 +125,11 @@ describe('TransactionsPanel', () => {
     // One debit amount per transaction row/card on the page.
     expect(screen.getAllByText(/^−R/)).toHaveLength(10);
 
-    await userEvent.click(screen.getByRole('combobox', { name: 'Sort by' }));
+    await userEvent.click(screen.getByRole('combobox', { name: /^Sort by/ }));
     await userEvent.click(await screen.findByRole('option', { name: 'Highest amount' }));
     expect(onChange).toHaveBeenCalledWith({ sortBy: 'amount_desc' });
 
-    await userEvent.click(screen.getByRole('combobox', { name: 'Category' }));
+    await userEvent.click(screen.getByRole('combobox', { name: /^Category/ }));
     await userEvent.click(await screen.findByRole('option', { name: 'Dining' }));
     expect(onChange).toHaveBeenCalledWith({ category: 'Dining' });
 
@@ -251,7 +251,7 @@ describe('App navigation', () => {
     renderWithProviders(<App />);
     expect(await screen.findByRole('heading', { level: 1, name: 'Overview' })).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: /View budgets/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'View all budgets' }));
 
     const heading = await screen.findByRole('heading', { level: 1, name: 'Budgets' });
     expect(window.location.search).toBe('?view=budgets');
@@ -270,6 +270,6 @@ describe('App navigation', () => {
       await screen.findByRole('heading', { level: 1, name: 'Transactions' }),
     ).toBeInTheDocument();
     expect(window.location.search).toBe('?view=transactions&period=90d&category=Dining');
-    expect(await screen.findByText('Category: Dining')).toBeInTheDocument();
+    expect(await screen.findByRole('combobox', { name: /^Category/ })).toHaveTextContent('Dining');
   });
 });
