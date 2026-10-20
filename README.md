@@ -4,8 +4,6 @@ My submission for the Software Engineer: UX Developer take-home. It's a responsi
 
 I built the front end in **React 18 and strict TypeScript** with **Material UI**, **TanStack Query** and **Recharts**. Behind it is a **TypeScript Express mock API** that implements every endpoint in the brief's contract ([docs/api-contract.md](docs/api-contract.md)). A single Docker container serves both.
 
-> This is a concept demonstration for an assessment, not an official banking product. The customer, merchants and transactions are fictional and generated deterministically.
-
 <img src="docs/screenshots/desktop-overview.png" alt="Overview tab on a desktop screen: total spent, category split, monthly budgets, monthly trend and recent transactions" width="820">
 
 <img src="docs/screenshots/desktop-overview-dark.png" alt="Overview in dark mode" width="820">
