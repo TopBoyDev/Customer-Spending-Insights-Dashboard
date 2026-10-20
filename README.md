@@ -70,6 +70,8 @@ I treated the brief as a real product rather than a set of endpoints to wire up.
 - **Honest, neutral language.** "3,8% more than the previous 30 days", always with the basis spelled out. I deliberately don't colour increases red: spending more isn't automatically bad, and a bank shouldn't imply it is.
 - **Restraint over decoration.** Capitec blue is the only accent. It's used boldly on the sidebar, the total-spent card and the selected period, so the eye lands there first. Everything else is white and grey, and category colours only appear as small dots and chart marks.
 
+I used AI-assisted tooling (Claude Code) to speed up implementation. The product decisions, UX direction and design iterations were mine, and I reviewed and tested everything that went in.
+
 ## What's in it
 
 - **Overview:** total spent for the period (the hero), the change against the previous equal-length period, transaction count, average transaction and top category. Below that: where the money went, monthly budgets at a glance, a six-month mini trend, and the latest transactions.
