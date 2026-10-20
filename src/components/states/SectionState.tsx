@@ -2,6 +2,7 @@ import InboxOutlined from '@mui/icons-material/InboxOutlined';
 import { Alert, Box, Button, Skeleton, Stack, Typography } from '@mui/material';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import { useMessages } from '../../i18n/I18nProvider';
 import { visuallyHiddenSx } from '../../utils/a11y';
 
 interface ErrorStateProps {
@@ -11,25 +12,21 @@ interface ErrorStateProps {
   isRetrying?: boolean;
 }
 
-export function ErrorState({
-  title = 'This section could not be loaded',
-  error,
-  onRetry,
-  isRetrying = false,
-}: ErrorStateProps) {
-  const message = error instanceof Error ? error.message : 'Please try again.';
+export function ErrorState({ title, error, onRetry, isRetrying = false }: ErrorStateProps) {
+  const m = useMessages();
+  const message = error instanceof Error ? error.message : m.states.tryAgainLater;
   return (
     <Alert
       severity="error"
       variant="outlined"
       action={
         <Button color="inherit" size="small" onClick={onRetry} disabled={isRetrying}>
-          {isRetrying ? 'Retrying…' : 'Try again'}
+          {isRetrying ? m.states.retrying : m.states.tryAgain}
         </Button>
       }
     >
       <Typography variant="subtitle2" component="p">
-        {title}
+        {title ?? m.states.sectionFailed}
       </Typography>
       <Typography variant="body2">{message}</Typography>
     </Alert>

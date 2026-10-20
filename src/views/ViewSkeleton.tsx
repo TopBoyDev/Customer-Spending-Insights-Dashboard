@@ -1,12 +1,14 @@
 import { Grid2 as Grid, Skeleton, Stack } from '@mui/material';
+import { useMessages } from '../i18n/I18nProvider';
 import { tokens } from '../theme/theme';
 
 const cardSx = { borderRadius: `${tokens.radius.card}px` };
 
 /** Placeholder while a code-split view loads; mirrors the page header and card grid. */
 export function ViewSkeleton() {
+  const m = useMessages();
   return (
-    <Stack spacing={3} role="status" aria-label="Loading">
+    <Stack spacing={3} role="status" aria-label={m.app.loading}>
       <Skeleton variant="text" width={180} height={44} />
       <Grid container spacing={{ xs: 2, md: 3 }}>
         {[0, 1, 2].map((key) => (

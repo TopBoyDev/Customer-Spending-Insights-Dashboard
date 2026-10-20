@@ -7,6 +7,7 @@ import { CategorySnapshot } from '../components/overview/CategorySnapshot';
 import { RecentTransactions } from '../components/overview/RecentTransactions';
 import { SummaryCard } from '../components/overview/SummaryCard';
 import { TrendSnapshot } from '../components/overview/TrendSnapshot';
+import { useMessages } from '../i18n/I18nProvider';
 import type { View } from '../navigation';
 
 interface OverviewViewProps {
@@ -17,10 +18,11 @@ interface OverviewViewProps {
 
 /** At-a-glance dashboard. Each card summarises one area and links to its full tab. */
 export function OverviewView({ period, onPeriodChange, onNavigate }: OverviewViewProps) {
+  const m = useMessages();
   return (
     <>
       <PageHeader
-        title="Overview"
+        title={m.views.overview}
         actions={<PeriodSelector value={period} onChange={onPeriodChange} />}
       />
       <Grid container spacing={{ xs: 2, md: 3 }}>

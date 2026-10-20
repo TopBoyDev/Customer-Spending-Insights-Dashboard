@@ -1,7 +1,8 @@
 import { Box, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import type { Period, SpendingByCategory } from '../../../shared/types';
 import { useSpendingCategories } from '../../hooks/useInsightsQueries';
-import { formatCurrency, formatDateRange, formatPercent, PERIOD_LABEL } from '../../utils/format';
+import { useMessages } from '../../i18n/I18nProvider';
+import { formatCurrency, formatDateRange, formatPercent } from '../../utils/format';
 import { CategoryDot } from '../common/CategoryDot';
 import { SectionCard } from '../common/SectionCard';
 import { EmptyState, SectionState } from '../states/SectionState';
@@ -38,20 +39,21 @@ export function ProportionBar({ data }: { data: SpendingByCategory }) {
 }
 
 export function CategorySnapshot({ period, onMore }: { period: Period; onMore: () => void }) {
+  const m = useMessages();
   const query = useSpendingCategories(period);
   return (
     <SectionCard
-      title="Categories"
+      title={m.categories.title}
       subtitle={
         query.data
           ? formatDateRange(query.data.dateRange.startDate, query.data.dateRange.endDate)
-          : `The ${PERIOD_LABEL[period]}`
+          : undefined
       }
-      more={{ label: 'categories', onClick: onMore }}
+      more={{ label: m.categories.viewAll, onClick: onMore }}
     >
       <SectionState
         query={query}
-        loadingLabel="Loading spending by category"
+        loadingLabel={m.categories.loading}
         skeleton={
           <Stack spacing={1.5}>
             <Skeleton variant="rounded" height={10} />
@@ -60,9 +62,9 @@ export function CategorySnapshot({ period, onMore }: { period: Period; onMore: (
             ))}
           </Stack>
         }
-        errorTitle="Category spending could not be loaded"
+        errorTitle={m.categories.error}
         isEmpty={(data) => data.categories.length === 0}
-        empty={<EmptyState title={`No spending in the ${PERIOD_LABEL[period]}`} />}
+        empty={<EmptyState title={m.states.noSpendingIn(m.period.last[period])} />}
       >
         {(data) => (
           <Stack spacing={2}>

@@ -23,7 +23,9 @@ import { TRANSACTIONS_PAGE_SIZE } from '../config';
 import { useTransactions } from '../hooks/useInsightsQueries';
 import { tokens } from '../theme/theme';
 import { visuallyHiddenSx } from '../utils/a11y';
-import { formatNumber, PERIOD_LABEL, SORT_LABELS } from '../utils/format';
+import { useMessages } from '../i18n/I18nProvider';
+import { LOCALE } from '../i18n/locale';
+import { formatNumber } from '../utils/format';
 
 export interface TransactionFilterChanges {
   category?: CategoryName | null;
@@ -47,6 +49,7 @@ export function TransactionsPanel({
   page,
   onChange,
 }: TransactionsPanelProps) {
+  const m = useMessages();
   const isWide = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
   const query = useTransactions({
     period,
@@ -73,14 +76,18 @@ export function TransactionsPanel({
   const resultSummary =
     data && data.pagination.total > 0
       ? data.transactions.length > 0
-        ? `Showing ${formatNumber(data.pagination.offset + 1)}–${formatNumber(data.pagination.offset + data.transactions.length)} of ${formatNumber(data.pagination.total)} transactions`
-        : 'No transactions on this page'
+        ? m.transactions.showing(
+            formatNumber(data.pagination.offset + 1),
+            formatNumber(data.pagination.offset + data.transactions.length),
+            formatNumber(data.pagination.total),
+          )
+        : m.transactions.emptyPage
       : '';
 
   return (
-    <Card component="section" aria-label="Transactions" sx={{ p: tokens.cardPadding }}>
+    <Card component="section" aria-label={m.transactions.title} sx={{ p: tokens.cardPadding }}>
       <Typography variant="h2" sx={visuallyHiddenSx}>
-        Transaction list
+        {m.transactions.list}
       </Typography>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -99,12 +106,12 @@ export function TransactionsPanel({
       </Stack>
       <Box sx={{ height: 2, mb: 1 }}>
         {query.isFetching && query.isPlaceholderData && (
-          <LinearProgress aria-label="Loading more transactions" sx={{ height: 2 }} />
+          <LinearProgress aria-label={m.transactions.loadingMore} sx={{ height: 2 }} />
         )}
       </Box>
       <SectionState
         query={query}
-        loadingLabel="Loading transactions"
+        loadingLabel={m.transactions.loading}
         skeleton={
           <Stack spacing={1}>
             {Array.from({ length: 6 }, (_, index) => (
@@ -112,24 +119,20 @@ export function TransactionsPanel({
             ))}
           </Stack>
         }
-        errorTitle="Your transactions could not be loaded"
+        errorTitle={m.transactions.error}
         isEmpty={(result) => result.pagination.total === 0}
         empty={
           <EmptyState
             title={
               category
-                ? `No ${category} transactions in the ${PERIOD_LABEL[period]}`
-                : `No transactions in the ${PERIOD_LABEL[period]}`
+                ? m.transactions.emptyCategory(category, m.period.last[period])
+                : m.transactions.emptyAll(m.period.last[period])
             }
-            description={
-              hasFilters
-                ? 'Try clearing the filters or choosing a longer period.'
-                : 'Try choosing a longer period.'
-            }
+            description={hasFilters ? m.transactions.hintFiltered : m.transactions.hintPeriod}
             action={
               hasFilters && (
                 <Button variant="contained" onClick={clearFilters}>
-                  Clear filters
+                  {m.transactions.clearFilters}
                 </Button>
               )
             }
@@ -137,7 +140,11 @@ export function TransactionsPanel({
         }
       >
         {(result) => {
-          const caption = `Transactions in the ${PERIOD_LABEL[period]}${category ? `, ${category} only` : ''}, ${SORT_LABELS[sortBy].toLowerCase()}`;
+          const caption = m.transactions.caption(
+            m.period.last[period],
+            category,
+            m.transactions.sort[sortBy].toLocaleLowerCase(LOCALE),
+          );
           return (
             <Stack spacing={3}>
               <Box sx={{ opacity: query.isPlaceholderData ? 0.6 : 1, transition: 'opacity 150ms' }}>
@@ -160,11 +167,11 @@ export function TransactionsPanel({
                   boundaryCount={1}
                   getItemAriaLabel={(type, itemPage, selected) => {
                     if (type === 'page') {
-                      return `${selected ? 'Current page, ' : 'Go to '}page ${itemPage}`;
+                      return m.transactions.page(itemPage ?? 0, selected);
                     }
-                    if (type === 'previous') return 'Previous page';
-                    if (type === 'next') return 'Next page';
-                    return `Go to ${type} page`;
+                    if (type === 'previous') return m.transactions.previousPage;
+                    if (type === 'next') return m.transactions.nextPage;
+                    return m.transactions.otherPage(type);
                   }}
                   sx={{
                     alignSelf: 'center',
@@ -175,7 +182,7 @@ export function TransactionsPanel({
                       '&:hover, &.Mui-focusVisible': { bgcolor: tokens.color.accent },
                     },
                   }}
-                  aria-label="Transaction pages"
+                  aria-label={m.transactions.pages}
                 />
               )}
             </Stack>
@@ -191,10 +198,11 @@ interface TransactionsViewProps extends TransactionsPanelProps {
 }
 
 export function TransactionsView({ onPeriodChange, ...panel }: TransactionsViewProps) {
+  const m = useMessages();
   return (
     <>
       <PageHeader
-        title="Transactions"
+        title={m.views.transactions}
         actions={<PeriodSelector value={panel.period} onChange={onPeriodChange} />}
       />
       <TransactionsPanel {...panel} />

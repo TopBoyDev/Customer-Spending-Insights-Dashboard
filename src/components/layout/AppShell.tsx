@@ -22,7 +22,8 @@ import {
 import type { ComponentType, MouseEvent, ReactNode } from 'react';
 import type { CustomerProfile } from '../../../shared/types';
 import { useApiMeta, useCustomerProfile } from '../../hooks/useInsightsQueries';
-import { VIEW_LABEL, VIEWS, type View } from '../../navigation';
+import { useMessages } from '../../i18n/I18nProvider';
+import { VIEWS, type View } from '../../navigation';
 import { useColorMode } from '../../theme/ColorModeProvider';
 import { tokens } from '../../theme/theme';
 import { visuallyHiddenSx } from '../../utils/a11y';
@@ -88,6 +89,7 @@ function handleLinkClick(event: MouseEvent, navigate: () => void) {
 }
 
 function Brand() {
+  const m = useMessages();
   return (
     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
       <Box
@@ -109,7 +111,7 @@ function Brand() {
         component="p"
         sx={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '-0.015em', color: WHITE }}
       >
-        Spending Insights
+        {m.app.name}
       </Typography>
     </Stack>
   );
@@ -136,6 +138,7 @@ function CustomerAvatar({ name, size = 42 }: { name: string; size?: number }) {
 }
 
 function ProfileCard({ profile }: { profile: CustomerProfile }) {
+  const m = useMessages();
   const meta = useApiMeta();
   return (
     <Box
@@ -159,7 +162,7 @@ function ProfileCard({ profile }: { profile: CustomerProfile }) {
         </Box>
       </Stack>
       {meta.data && (
-        <Tooltip title="Demo data is fixed to this date" placement="top">
+        <Tooltip title={m.app.dataToHelp} placement="top">
           <Stack
             direction="row"
             spacing={0.75}
@@ -176,7 +179,7 @@ function ProfileCard({ profile }: { profile: CustomerProfile }) {
           >
             <EventOutlined aria-hidden sx={{ fontSize: 15 }} />
             <Typography component="span" sx={{ fontSize: '0.75rem', color: 'inherit' }}>
-              Data to {formatCalendarDate(meta.data.dataAsOf)}
+              {m.app.dataTo(formatCalendarDate(meta.data.dataAsOf))}
             </Typography>
           </Stack>
         </Tooltip>
@@ -185,22 +188,24 @@ function ProfileCard({ profile }: { profile: CustomerProfile }) {
   );
 }
 
-const MODE_OPTIONS: { mode: PaletteMode; label: string; Icon: ComponentType<SvgIconProps> }[] = [
-  { mode: 'light', label: 'Light', Icon: LightModeOutlined },
-  { mode: 'dark', label: 'Dark', Icon: DarkModeOutlined },
+const MODE_OPTIONS: { mode: PaletteMode; Icon: ComponentType<SvgIconProps> }[] = [
+  { mode: 'light', Icon: LightModeOutlined },
+  { mode: 'dark', Icon: DarkModeOutlined },
 ];
 
 /** Two-option segmented switch for the colour theme, sized for the sidebar. */
 function ThemeSwitch() {
+  const m = useMessages();
   const { mode, setMode } = useColorMode();
   return (
     <Stack
       role="group"
-      aria-label="Colour theme"
+      aria-label={m.app.colourTheme}
       direction="row"
       sx={{ p: 0.5, borderRadius: '14px', bgcolor: 'rgba(0, 0, 0, 0.18)' }}
     >
-      {MODE_OPTIONS.map(({ mode: option, label, Icon }) => {
+      {MODE_OPTIONS.map(({ mode: option, Icon }) => {
+        const label = option === 'light' ? m.app.themeLight : m.app.themeDark;
         const selected = option === mode;
         return (
           <ButtonBase
@@ -232,6 +237,7 @@ function ThemeSwitch() {
 }
 
 function Sidebar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>) {
+  const m = useMessages();
   const profile = useCustomerProfile();
   return (
     <Box
@@ -255,7 +261,7 @@ function Sidebar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>)
       <Box sx={{ px: 1.5, mb: 5 }}>
         <Brand />
       </Box>
-      <Box component="nav" aria-label="Dashboard sections" sx={{ flex: 1 }}>
+      <Box component="nav" aria-label={m.app.sections} sx={{ flex: 1 }}>
         <Stack component="ul" spacing={0.75} sx={{ m: 0, p: 0, listStyle: 'none' }}>
           {VIEWS.map((item) => {
             const Icon = VIEW_ICON[item];
@@ -287,7 +293,7 @@ function Sidebar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>)
                   }}
                 >
                   <Icon aria-hidden sx={{ fontSize: 21 }} />
-                  {VIEW_LABEL[item]}
+                  {m.views[item]}
                 </ButtonBase>
               </li>
             );
@@ -306,7 +312,8 @@ function MobileTopBar() {
   const profile = useCustomerProfile();
   const { mode, setMode } = useColorMode();
   const nextMode: PaletteMode = mode === 'light' ? 'dark' : 'light';
-  const toggleLabel = `Switch to ${nextMode} mode`;
+  const m = useMessages();
+  const toggleLabel = m.app.switchTheme(nextMode);
   return (
     <Box
       component="header"
@@ -369,10 +376,11 @@ function MobileTopBar() {
 
 /** Floating tab bar for phones: the active tab gets a pill indicator behind its icon. */
 function BottomBar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'>) {
+  const m = useMessages();
   return (
     <Box
       component="nav"
-      aria-label="Dashboard sections"
+      aria-label={m.app.sections}
       sx={{
         position: 'fixed',
         left: 12,
@@ -433,7 +441,7 @@ function BottomBar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'
                     color: selected ? tokens.color.accentFg : tokens.color.textSecondary,
                   }}
                 >
-                  {VIEW_LABEL[item]}
+                  {m.views[item]}
                 </Typography>
               </ButtonBase>
             </Box>
@@ -450,6 +458,7 @@ function BottomBar({ view, hrefFor, onNavigate }: Omit<AppShellProps, 'children'
  * opened in a new browser tab or bookmarked.
  */
 export function AppShell({ view, hrefFor, onNavigate, children }: AppShellProps) {
+  const m = useMessages();
   const isDesktop = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
 
   return (
@@ -477,7 +486,7 @@ export function AppShell({ view, hrefFor, onNavigate, children }: AppShellProps)
           },
         }}
       >
-        Skip to main content
+        {m.app.skipToContent}
       </Box>
 
       {isDesktop ? (

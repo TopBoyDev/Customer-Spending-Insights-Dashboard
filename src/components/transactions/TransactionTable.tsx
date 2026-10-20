@@ -12,6 +12,7 @@ import {
 import type { Transaction } from '../../../shared/types';
 import { formatCurrency, formatTransactionDate, formatTransactionTime } from '../../utils/format';
 import { visuallyHiddenSx } from '../../utils/a11y';
+import { useMessages } from '../../i18n/I18nProvider';
 import { CategoryDot } from '../common/CategoryDot';
 import { CategoryIcon } from '../common/CategoryIcon';
 
@@ -23,6 +24,8 @@ export function TransactionTable({
   transactions: Transaction[];
   caption: string;
 }) {
+  const m = useMessages();
+  const columns = m.transactions.columns;
   return (
     <TableContainer>
       <Table size="small" sx={{ '& td, & th': { py: 1.75 }, '& thead th': { py: 1.25 } }}>
@@ -32,19 +35,19 @@ export function TransactionTable({
         <TableHead>
           <TableRow>
             <TableCell component="th" scope="col">
-              Date
+              {columns.date}
             </TableCell>
             <TableCell component="th" scope="col">
-              Merchant
+              {columns.merchant}
             </TableCell>
             <TableCell component="th" scope="col">
-              Category
+              {columns.category}
             </TableCell>
             <TableCell component="th" scope="col">
-              Payment method
+              {columns.paymentMethod}
             </TableCell>
             <TableCell component="th" scope="col" align="right">
-              Amount
+              {columns.amount}
             </TableCell>
           </TableRow>
         </TableHead>

@@ -4,9 +4,10 @@ import { useTransactions } from '../../hooks/useInsightsQueries';
 import {
   formatCurrency,
   formatTransactionDate,
+  formatNumber,
   formatTransactionTime,
-  PERIOD_LABEL,
 } from '../../utils/format';
+import { useMessages } from '../../i18n/I18nProvider';
 import { CategoryIcon } from '../common/CategoryIcon';
 import { SectionCard } from '../common/SectionCard';
 import { EmptyState, SectionState } from '../states/SectionState';
@@ -14,21 +15,25 @@ import { EmptyState, SectionState } from '../states/SectionState';
 const RECENT_COUNT = 5;
 
 export function RecentTransactions({ period, onMore }: { period: Period; onMore: () => void }) {
+  const m = useMessages();
   const query = useTransactions({ period, sortBy: DEFAULT_SORT, limit: RECENT_COUNT, offset: 0 });
 
   return (
     <SectionCard
-      title="Recent transactions"
+      title={m.transactions.recent}
       subtitle={
         query.data
-          ? `${query.data.pagination.total} in the ${PERIOD_LABEL[period]}`
-          : `The ${PERIOD_LABEL[period]}`
+          ? m.transactions.countInPeriod(
+              formatNumber(query.data.pagination.total),
+              m.period.last[period],
+            )
+          : undefined
       }
-      more={{ label: 'transactions', onClick: onMore }}
+      more={{ label: m.transactions.viewAll, onClick: onMore }}
     >
       <SectionState
         query={query}
-        loadingLabel="Loading recent transactions"
+        loadingLabel={m.transactions.recentLoading}
         skeleton={
           <Stack spacing={1.5}>
             {Array.from({ length: RECENT_COUNT }, (_, index) => (
@@ -36,9 +41,9 @@ export function RecentTransactions({ period, onMore }: { period: Period; onMore:
             ))}
           </Stack>
         }
-        errorTitle="Recent transactions could not be loaded"
+        errorTitle={m.transactions.recentError}
         isEmpty={(data) => data.transactions.length === 0}
-        empty={<EmptyState title={`No transactions in the ${PERIOD_LABEL[period]}`} />}
+        empty={<EmptyState title={m.transactions.emptyAll(m.period.last[period])} />}
       >
         {(data) => (
           <Box component="ul" sx={{ m: 0, p: 0, mt: -1 }}>

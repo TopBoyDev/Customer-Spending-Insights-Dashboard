@@ -8,13 +8,8 @@ import { CATEGORY_BY_NAME } from '../../../shared/categories';
 import type { Period, SpendingSummary } from '../../../shared/types';
 import { useSpendingCategories, useSpendingSummary } from '../../hooks/useInsightsQueries';
 import { tokens } from '../../theme/theme';
-import {
-  formatCurrency,
-  formatNumber,
-  formatPercent,
-  PERIOD_LABEL,
-  PREVIOUS_PERIOD_LABEL,
-} from '../../utils/format';
+import { useMessages } from '../../i18n/I18nProvider';
+import { formatCurrency, formatNumber, formatPercent } from '../../utils/format';
 import {
   describeCountChange,
   describeSpendingChange,
@@ -34,9 +29,11 @@ const CHANGE_ICON = {
 
 /** The one high-contrast surface on the page: where the eye should land first. */
 function HeroCard({ summary }: { summary: SpendingSummary }) {
+  const m = useMessages();
   const change: ChangeDescription = describeSpendingChange(
     summary.comparedToPrevious.spentChange,
     summary.period,
+    m,
   );
   const Icon = CHANGE_ICON[change.direction];
   return (
@@ -65,7 +62,7 @@ function HeroCard({ summary }: { summary: SpendingSummary }) {
         component="p"
         sx={{ fontSize: '0.875rem', fontWeight: 500, color: tokens.color.onAccentMuted }}
       >
-        Total spent · {PERIOD_LABEL[summary.period]}
+        {m.summary.totalSpent(m.period.last[summary.period])}
       </Typography>
       <Typography
         component="p"
@@ -102,6 +99,7 @@ function HeroCard({ summary }: { summary: SpendingSummary }) {
 }
 
 function SummaryContent({ summary }: { summary: SpendingSummary }) {
+  const m = useMessages();
   const topCategory = summary.topCategory ? CATEGORY_BY_NAME[summary.topCategory] : null;
   const transactionChange = summary.comparedToPrevious.transactionChange;
   // Shares the cached categories query used elsewhere on the overview.
@@ -115,14 +113,17 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
       <Grid size={{ xs: 6, sm: 4, lg: 8 / 3 }}>
         <StatCard
           icon={<ReceiptLongOutlined />}
-          label="Transactions"
+          label={m.summary.transactions}
           value={formatNumber(summary.transactionCount)}
-          footnote="vs prior period"
+          footnote={m.summary.vsPrior}
           badge={
             transactionChange !== null && (
               <ChangeBadge
                 change={transactionChange}
-                label={`${describeCountChange(transactionChange).text} transactions than ${PREVIOUS_PERIOD_LABEL[summary.period]}`}
+                label={m.change.countBadge(
+                  describeCountChange(transactionChange, m).text,
+                  m.period.previous[summary.period],
+                )}
               />
             )
           }
@@ -131,21 +132,24 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
       <Grid size={{ xs: 6, sm: 4, lg: 8 / 3 }}>
         <StatCard
           icon={<PaymentsOutlined />}
-          label="Avg. transaction"
+          label={m.summary.averageTransaction}
           value={formatCurrency(summary.averageTransaction)}
-          footnote={`${formatNumber(summary.transactionCount)} transactions`}
+          footnote={m.transactions.count(
+            summary.transactionCount,
+            formatNumber(summary.transactionCount),
+          )}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 4, lg: 8 / 3 }}>
         <StatCard
           icon={topCategory ? <CategoryIcon icon={topCategory.icon} size={19} bare /> : null}
-          label="Top category"
-          value={topCategory?.name ?? 'None'}
+          label={m.summary.topCategory}
+          value={topCategory?.name ?? m.summary.none}
           footnote={
             topCategory && topShare ? (
               <Stack component="span" direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
                 <CategoryDot color={topCategory.color} />
-                <span>{formatPercent(topShare.percentage)} of spend</span>
+                <span>{m.summary.shareOfSpend(formatPercent(topShare.percentage))}</span>
               </Stack>
             ) : undefined
           }
@@ -176,20 +180,21 @@ function SummarySkeleton() {
 
 /** Headline metrics for the selected period. */
 export function SummaryCard({ period }: { period: Period }) {
+  const m = useMessages();
   const query = useSpendingSummary(period);
   return (
-    <Box component="section" aria-label="Spending summary">
+    <Box component="section" aria-label={m.summary.region}>
       <SectionState
         query={query}
-        loadingLabel="Loading spending summary"
+        loadingLabel={m.summary.loading}
         skeleton={<SummarySkeleton />}
-        errorTitle="Your spending summary could not be loaded"
+        errorTitle={m.summary.error}
         isEmpty={(summary) => summary.transactionCount === 0}
         empty={
           <Card sx={{ p: tokens.cardPadding }}>
             <EmptyState
-              title={`No spending in the ${PERIOD_LABEL[period]}`}
-              description="Try a longer period to see your spending."
+              title={m.states.noSpendingIn(m.period.last[period])}
+              description={m.states.tryLongerPeriod}
             />
           </Card>
         }

@@ -4,11 +4,13 @@ import type { SpendingGoal } from '../../../shared/types';
 import { useApiMeta, useSpendingGoals } from '../../hooks/useInsightsQueries';
 import { formatCurrency, formatMonthLong, formatPercent } from '../../utils/format';
 import { budgetBarColor } from '../../utils/goals';
+import { useMessages } from '../../i18n/I18nProvider';
 import { SectionCard } from '../common/SectionCard';
 import { StatusLabel } from '../common/StatusLabel';
 import { EmptyState, SectionState } from '../states/SectionState';
 
 function BudgetRow({ goal }: { goal: SpendingGoal }) {
+  const m = useMessages();
   return (
     <Box component="li" sx={{ listStyle: 'none', py: 1.25 }}>
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.75 }}>
@@ -20,34 +22,38 @@ function BudgetRow({ goal }: { goal: SpendingGoal }) {
       <LinearProgress
         variant="determinate"
         value={Math.min(goal.percentageUsed, 100)}
-        aria-label={`${goal.category} budget used`}
-        aria-valuetext={`${formatPercent(goal.percentageUsed)} of ${formatCurrency(goal.monthlyBudget)} used`}
+        aria-label={m.budgets.budgetUsed(goal.category)}
+        aria-valuetext={m.budgets.usedOf(
+          formatPercent(goal.percentageUsed),
+          formatCurrency(goal.monthlyBudget),
+        )}
         sx={{ '& .MuiLinearProgress-bar': { bgcolor: budgetBarColor(goal) } }}
       />
       <Typography variant="caption" component="p" sx={{ mt: 0.5 }}>
-        {formatCurrency(goal.currentSpent)} of {formatCurrency(goal.monthlyBudget)}
+        {m.budgets.spentOf(formatCurrency(goal.currentSpent), formatCurrency(goal.monthlyBudget))}
       </Typography>
     </Box>
   );
 }
 
 export function BudgetSnapshot({ onMore }: { onMore: () => void }) {
+  const m = useMessages();
   const query = useSpendingGoals();
   const meta = useApiMeta();
-  const month = meta.data ? formatMonthLong(toMonthKey(meta.data.dataAsOf)) : 'This month';
+  const month = meta.data ? formatMonthLong(toMonthKey(meta.data.dataAsOf)) : m.budgets.thisMonth;
   const days = query.data?.goals[0]?.daysRemaining;
 
   return (
     <SectionCard
-      title="Monthly budgets"
+      title={m.budgets.snapshotTitle}
       subtitle={
-        days === undefined ? month : `${month} · ${days} ${days === 1 ? 'day' : 'days'} left`
+        days === undefined ? month : m.budgets.monthWithDays(month, m.budgets.daysLeft(days))
       }
-      more={{ label: 'budgets', onClick: onMore }}
+      more={{ label: m.budgets.viewAll, onClick: onMore }}
     >
       <SectionState
         query={query}
-        loadingLabel="Loading monthly budgets"
+        loadingLabel={m.budgets.loading}
         skeleton={
           <Stack spacing={2}>
             {[0, 1, 2].map((key) => (
@@ -55,9 +61,9 @@ export function BudgetSnapshot({ onMore }: { onMore: () => void }) {
             ))}
           </Stack>
         }
-        errorTitle="Your budgets could not be loaded"
+        errorTitle={m.budgets.error}
         isEmpty={(data) => data.goals.length === 0}
-        empty={<EmptyState title="No monthly budgets set" />}
+        empty={<EmptyState title={m.budgets.empty} />}
       >
         {(data) => (
           <Box component="ul" sx={{ m: 0, p: 0, mt: -1.25 }}>

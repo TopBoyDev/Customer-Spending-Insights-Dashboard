@@ -4,7 +4,7 @@ import { Stack } from '@mui/material';
 import { CATEGORIES, findCategoryName, type CategoryName } from '../../../shared/categories';
 import { SORT_OPTIONS, type TransactionSort } from '../../../shared/types';
 import { useFilterOptions } from '../../hooks/useInsightsQueries';
-import { SORT_LABELS } from '../../utils/format';
+import { useMessages } from '../../i18n/I18nProvider';
 import { PillSelect } from '../common/PillSelect';
 
 const ALL = 'all';
@@ -22,6 +22,7 @@ export function TransactionFilters({
   onCategoryChange,
   onSortChange,
 }: TransactionFiltersProps) {
+  const m = useMessages();
   // The filters endpoint is the source of truth; fall back to the contract's list if it fails.
   const filters = useFilterOptions();
   const categories = filters.data?.categories ?? CATEGORIES;
@@ -29,11 +30,11 @@ export function TransactionFilters({
   return (
     <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
       <PillSelect
-        label="Category"
+        label={m.transactions.category}
         icon={<FilterListRounded />}
         value={category ?? ALL}
         options={[
-          { value: ALL, label: 'All categories' },
+          { value: ALL, label: m.transactions.allCategories },
           ...categories.map((option) => ({
             value: option.name,
             label: option.name,
@@ -43,10 +44,13 @@ export function TransactionFilters({
         onChange={(value) => onCategoryChange(findCategoryName(value) ?? null)}
       />
       <PillSelect
-        label="Sort by"
+        label={m.transactions.sortBy}
         icon={<SwapVertRounded />}
         value={sortBy}
-        options={SORT_OPTIONS.map((option) => ({ value: option, label: SORT_LABELS[option] }))}
+        options={SORT_OPTIONS.map((option) => ({
+          value: option,
+          label: m.transactions.sort[option],
+        }))}
         onChange={onSortChange}
       />
     </Stack>

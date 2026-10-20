@@ -1,6 +1,7 @@
 import ArrowForwardRounded from '@mui/icons-material/ArrowForwardRounded';
 import { Box, Button, Card, Stack, Typography } from '@mui/material';
 import { useId, type ReactNode } from 'react';
+import { useMessages } from '../../i18n/I18nProvider';
 import { tokens } from '../../theme/theme';
 
 interface SectionCardProps {
@@ -15,6 +16,7 @@ interface SectionCardProps {
 
 /** A labelled dashboard region: elevated surface, consistent padding and header. */
 export function SectionCard({ title, subtitle, action, more, children, id }: SectionCardProps) {
+  const m = useMessages();
   const headingId = useId();
   return (
     <Card
@@ -43,7 +45,7 @@ export function SectionCard({ title, subtitle, action, more, children, id }: Sec
           <Button
             size="small"
             onClick={more.onClick}
-            aria-label={`View all ${more.label}`}
+            aria-label={m.common.viewAllLabel(more.label)}
             endIcon={<ArrowForwardRounded aria-hidden sx={{ fontSize: '16px !important' }} />}
             sx={{
               flexShrink: 0,
@@ -55,7 +57,7 @@ export function SectionCard({ title, subtitle, action, more, children, id }: Sec
               '&:hover': { bgcolor: tokens.color.accentSoft },
             }}
           >
-            View all
+            {m.common.viewAll}
           </Button>
         )}
       </Stack>

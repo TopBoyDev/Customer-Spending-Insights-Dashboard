@@ -10,13 +10,8 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { EmptyState, SectionState } from '../components/states/SectionState';
 import { useSpendingCategories } from '../hooks/useInsightsQueries';
 import { tokens } from '../theme/theme';
-import {
-  formatCurrency,
-  formatDateRange,
-  formatNumber,
-  formatPercent,
-  PERIOD_LABEL,
-} from '../utils/format';
+import { formatCurrency, formatDateRange, formatNumber, formatPercent } from '../utils/format';
+import { useMessages } from '../i18n/I18nProvider';
 
 function CategoryRow({
   category,
@@ -27,11 +22,20 @@ function CategoryRow({
   maxPercentage: number;
   onSelect: () => void;
 }) {
-  const transactionLabel = `${formatNumber(category.transactionCount)} ${category.transactionCount === 1 ? 'transaction' : 'transactions'}`;
+  const m = useMessages();
+  const transactionLabel = m.transactions.count(
+    category.transactionCount,
+    formatNumber(category.transactionCount),
+  );
   return (
     <ButtonBase
       onClick={onSelect}
-      aria-label={`${category.name}: ${formatCurrency(category.amount)}, ${formatPercent(category.percentage)} of spending, ${transactionLabel}. Show these transactions`}
+      aria-label={m.categories.rowLabel(
+        category.name,
+        formatCurrency(category.amount),
+        formatPercent(category.percentage),
+        transactionLabel,
+      )}
       sx={{
         width: '100%',
         textAlign: 'left',
@@ -75,7 +79,9 @@ function CategoryRow({
         </Box>
         <Stack direction="row" sx={{ justifyContent: 'space-between', mt: 0.75 }}>
           <Typography variant="caption">{transactionLabel}</Typography>
-          <Typography variant="caption">{formatPercent(category.percentage)} of total</Typography>
+          <Typography variant="caption">
+            {m.categories.ofTotal(formatPercent(category.percentage))}
+          </Typography>
         </Stack>
       </Box>
       <ChevronRightRounded aria-hidden sx={{ color: 'text.secondary', fontSize: 20 }} />
@@ -92,6 +98,7 @@ interface CategoriesViewProps {
 const CategoryDonut = lazy(() => import('../components/charts/CategoryDonut'));
 
 export function CategoriesView({ period, onPeriodChange, onSelectCategory }: CategoriesViewProps) {
+  const m = useMessages();
   const query = useSpendingCategories(period);
   const range = query.data
     ? formatDateRange(query.data.dateRange.startDate, query.data.dateRange.endDate)
@@ -100,12 +107,12 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
   return (
     <>
       <PageHeader
-        title="Categories"
+        title={m.views.categories}
         actions={<PeriodSelector value={period} onChange={onPeriodChange} />}
       />
       <SectionState
         query={query}
-        loadingLabel="Loading spending by category"
+        loadingLabel={m.categories.loading}
         skeleton={
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, md: 5 }}>
@@ -116,12 +123,12 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
             </Grid>
           </Grid>
         }
-        errorTitle="Category spending could not be loaded"
+        errorTitle={m.categories.error}
         isEmpty={(data) => data.categories.length === 0}
         empty={
           <EmptyState
-            title={`No spending in the ${PERIOD_LABEL[period]}`}
-            description="Categories appear here once you have transactions in this period."
+            title={m.states.noSpendingIn(m.period.last[period])}
+            description={m.categories.emptyHint}
           />
         }
       >
@@ -130,7 +137,7 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
           return (
             <Grid container spacing={{ xs: 2, md: 3 }}>
               <Grid size={{ xs: 12, md: 5 }}>
-                <SectionCard title="Share of spending" subtitle={range}>
+                <SectionCard title={m.categories.share} subtitle={range}>
                   <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
                     <Suspense fallback={<Skeleton variant="circular" width={240} height={240} />}>
                       <CategoryDonut data={data} />
@@ -139,7 +146,7 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
                 </SectionCard>
               </Grid>
               <Grid size={{ xs: 12, md: 7 }}>
-                <SectionCard title="Breakdown">
+                <SectionCard title={m.categories.breakdown}>
                   <Box component="ul" sx={{ m: 0, p: 0, mx: -1.5, listStyle: 'none' }}>
                     {data.categories.map((category) => (
                       <li key={category.name}>

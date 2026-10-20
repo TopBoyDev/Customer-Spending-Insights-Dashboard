@@ -12,6 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import type { MonthlyTrend } from '../../../shared/types';
+import { useMessages } from '../../i18n/I18nProvider';
 import { tokens, useAppColors } from '../../theme/theme';
 import { barGradientDefs, svgSafeId } from '../../utils/charts';
 import {
@@ -38,6 +39,7 @@ function TrendTooltip({
   active?: boolean;
   payload?: { payload: ChartPoint }[];
 }) {
+  const m = useMessages();
   const point = payload?.[0]?.payload;
   if (!active || !point) return null;
   return (
@@ -54,14 +56,16 @@ function TrendTooltip({
     >
       <Typography variant="caption" component="p">
         {formatMonthLong(point.month)}
-        {point.isPartial && ' (to date)'}
+        {point.isPartial && m.trends.toDate}
       </Typography>
       <Typography variant="body2" sx={{ fontWeight: 600 }}>
         {formatCurrency(point.totalSpent)}
       </Typography>
       <Typography variant="caption" component="p">
-        {formatNumber(point.transactionCount)} transactions · avg{' '}
-        {formatCurrency(point.averageTransaction)}
+        {m.trends.tooltipDetail(
+          formatNumber(point.transactionCount),
+          formatCurrency(point.averageTransaction),
+        )}
       </Typography>
     </Box>
   );
@@ -74,6 +78,7 @@ export default function TrendChart({
   points: ChartPoint[];
   averageMonthly: number | null;
 }) {
+  const m = useMessages();
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   const colors = useAppColors();
   const gradientId = svgSafeId(`trend-chart-${useId()}`);
@@ -109,7 +114,7 @@ export default function TrendChart({
               stroke={colors.textSecondary}
               strokeDasharray="4 4"
               label={{
-                value: 'Average',
+                value: m.trends.average,
                 position: 'insideTopRight',
                 fill: colors.textSecondary,
                 fontSize: 12,

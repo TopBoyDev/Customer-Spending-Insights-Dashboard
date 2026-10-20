@@ -16,6 +16,8 @@ import type { SpendingGoal } from '../../shared/types';
 import { CategoryDot } from '../components/common/CategoryDot';
 import { CategoryIcon } from '../components/common/CategoryIcon';
 import { StatCard } from '../components/common/StatCard';
+import type { Messages } from '../i18n/en';
+import { useMessages } from '../i18n/I18nProvider';
 import { StatusLabel } from '../components/common/StatusLabel';
 import { PageHeader } from '../components/layout/PageHeader';
 import { EmptyState, SectionState } from '../components/states/SectionState';
@@ -24,14 +26,15 @@ import { tokens } from '../theme/theme';
 import { formatCurrency, formatMonthLong, formatPercent } from '../utils/format';
 import { budgetBarColor } from '../utils/goals';
 
-function guidance(goal: SpendingGoal, remaining: number): string {
-  if (remaining < 0) return `${formatCurrency(Math.abs(remaining))} over budget`;
-  if (goal.daysRemaining === 0) return `${formatCurrency(remaining)} left`;
+function guidance(goal: SpendingGoal, remaining: number, m: Messages): string {
+  if (remaining < 0) return m.budgets.overBy(formatCurrency(Math.abs(remaining)));
+  if (goal.daysRemaining === 0) return m.budgets.left(formatCurrency(remaining));
   const perDay = remaining / goal.daysRemaining;
-  return `${formatCurrency(remaining)} left · about ${formatCurrency(perDay)} a day`;
+  return m.budgets.leftPerDay(formatCurrency(remaining), formatCurrency(perDay));
 }
 
 export function GoalCard({ goal }: { goal: SpendingGoal }) {
+  const m = useMessages();
   const category = CATEGORY_BY_NAME[goal.category];
   const remaining = goal.monthlyBudget - goal.currentSpent;
 
@@ -47,7 +50,7 @@ export function GoalCard({ goal }: { goal: SpendingGoal }) {
             </Typography>
           </Stack>
           <Typography variant="caption" component="p">
-            Monthly budget {formatCurrency(goal.monthlyBudget)}
+            {m.budgets.monthlyBudget(formatCurrency(goal.monthlyBudget))}
           </Typography>
         </Box>
         <StatusLabel status={goal.status} />
@@ -67,18 +70,22 @@ export function GoalCard({ goal }: { goal: SpendingGoal }) {
       <LinearProgress
         variant="determinate"
         value={Math.min(goal.percentageUsed, 100)}
-        aria-label={`${goal.category} budget used`}
-        aria-valuetext={`${formatPercent(goal.percentageUsed)} of ${formatCurrency(goal.monthlyBudget)} used`}
+        aria-label={m.budgets.budgetUsed(goal.category)}
+        aria-valuetext={m.budgets.usedOf(
+          formatPercent(goal.percentageUsed),
+          formatCurrency(goal.monthlyBudget),
+        )}
         sx={{ '& .MuiLinearProgress-bar': { bgcolor: budgetBarColor(goal) } }}
       />
       <Typography variant="caption" component="p" sx={{ mt: 1 }}>
-        {guidance(goal, remaining)}
+        {guidance(goal, remaining, m)}
       </Typography>
     </Card>
   );
 }
 
 function Totals({ goals }: { goals: SpendingGoal[] }) {
+  const m = useMessages();
   const budget = goals.reduce((sum, goal) => sum + goal.monthlyBudget, 0);
   const spent = goals.reduce((sum, goal) => sum + goal.currentSpent, 0);
   const remaining = budget - spent;
@@ -88,29 +95,25 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
       <Grid size={{ xs: 12, sm: 4 }}>
         <StatCard
           icon={<AccountBalanceWalletOutlined />}
-          label="Total budgeted"
+          label={m.budgets.totalBudgeted}
           value={formatCurrency(budget)}
-          footnote={`${goals.length} ${goals.length === 1 ? 'category' : 'categories'}`}
+          footnote={m.budgets.categoryCount(goals.length)}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>
         <StatCard
           icon={<PaymentsOutlined />}
-          label="Spent so far"
+          label={m.budgets.spentSoFar}
           value={formatCurrency(spent)}
-          footnote={`${formatPercent(budget === 0 ? 0 : (spent / budget) * 100)} of budget`}
+          footnote={m.budgets.ofBudget(formatPercent(budget === 0 ? 0 : (spent / budget) * 100))}
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4 }}>
         <StatCard
           icon={<SavingsOutlined />}
-          label={remaining >= 0 ? 'Remaining' : 'Over budget'}
+          label={remaining >= 0 ? m.budgets.remaining : m.budgets.overBudget}
           value={formatCurrency(Math.abs(remaining))}
-          footnote={
-            daysRemaining === undefined
-              ? undefined
-              : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} left`
-          }
+          footnote={daysRemaining === undefined ? undefined : m.budgets.daysLeft(daysRemaining)}
         />
       </Grid>
     </Grid>
@@ -118,22 +121,23 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
 }
 
 export function BudgetsView() {
+  const m = useMessages();
   const query = useSpendingGoals();
   const meta = useApiMeta();
-  const month = meta.data ? formatMonthLong(toMonthKey(meta.data.dataAsOf)) : 'This month';
+  const month = meta.data ? formatMonthLong(toMonthKey(meta.data.dataAsOf)) : m.budgets.thisMonth;
   const days = query.data?.goals[0]?.daysRemaining;
 
   return (
     <>
       <PageHeader
-        title="Budgets"
+        title={m.views.budgets}
         description={
-          days === undefined ? month : `${month} · ${days} ${days === 1 ? 'day' : 'days'} left`
+          days === undefined ? month : m.budgets.monthWithDays(month, m.budgets.daysLeft(days))
         }
       />
       <SectionState
         query={query}
-        loadingLabel="Loading monthly budgets"
+        loadingLabel={m.budgets.loading}
         skeleton={
           <Grid container spacing={2.5}>
             {[0, 1, 2, 3].map((key) => (
@@ -143,9 +147,9 @@ export function BudgetsView() {
             ))}
           </Grid>
         }
-        errorTitle="Your budgets could not be loaded"
+        errorTitle={m.budgets.error}
         isEmpty={(data) => data.goals.length === 0}
-        empty={<EmptyState title="No monthly budgets set" />}
+        empty={<EmptyState title={m.budgets.empty} />}
       >
         {(data) => (
           <>

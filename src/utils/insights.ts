@@ -1,5 +1,6 @@
 import type { MonthlyTrend, Period } from '../../shared/types';
-import { formatCurrency, formatMonthLong, formatPercent, PREVIOUS_PERIOD_LABEL } from './format';
+import { en, type Messages } from '../i18n/en';
+import { formatCurrency, formatMonthLong, formatPercent } from './format';
 
 export type ChangeDirection = 'up' | 'down' | 'flat' | 'none';
 
@@ -13,29 +14,33 @@ export interface ChangeDescription {
  * Neutral wording for a period-over-period change. Spending more is not
  * automatically bad, so the copy avoids judgement words.
  */
-export function describeSpendingChange(change: number | null, period: Period): ChangeDescription {
-  const basis = PREVIOUS_PERIOD_LABEL[period];
-  if (change === null) {
-    return { direction: 'none', text: `No spending in ${basis} to compare with` };
-  }
-  if (change === 0) return { direction: 'flat', text: `The same as ${basis}` };
+export function describeSpendingChange(
+  change: number | null,
+  period: Period,
+  m: Messages = en,
+): ChangeDescription {
+  const basis = m.period.previous[period];
+  const copy = m.change.spending;
+  if (change === null) return { direction: 'none', text: copy.none(basis) };
+  if (change === 0) return { direction: 'flat', text: copy.same(basis) };
   const amount = formatPercent(Math.abs(change));
   return change > 0
-    ? { direction: 'up', text: `${amount} more than ${basis}` }
-    : { direction: 'down', text: `${amount} less than ${basis}` };
+    ? { direction: 'up', text: copy.more(amount, basis) }
+    : { direction: 'down', text: copy.less(amount, basis) };
 }
 
 /**
  * Compact wording for secondary metrics. The comparison basis is already
  * spelled out once next to the headline total, so it is not repeated here.
  */
-export function describeCountChange(change: number | null): ChangeDescription {
-  if (change === null) return { direction: 'none', text: 'Nothing to compare' };
-  if (change === 0) return { direction: 'flat', text: 'No change' };
+export function describeCountChange(change: number | null, m: Messages = en): ChangeDescription {
+  const copy = m.change.count;
+  if (change === null) return { direction: 'none', text: copy.none };
+  if (change === 0) return { direction: 'flat', text: copy.same };
   const amount = formatPercent(Math.abs(change));
   return change > 0
-    ? { direction: 'up', text: `${amount} more` }
-    : { direction: 'down', text: `${amount} fewer` };
+    ? { direction: 'up', text: copy.more(amount) }
+    : { direction: 'down', text: copy.fewer(amount) };
 }
 
 export interface TrendInsight {
@@ -54,7 +59,9 @@ export interface TrendInsight {
 export function summariseTrends(
   trends: readonly MonthlyTrend[],
   currentMonth: string | undefined,
+  m: Messages = en,
 ): TrendInsight {
+  const copy = m.trends.insight;
   const completeMonths = trends.filter((trend) => trend.month !== currentMonth);
   const withSpending = completeMonths.filter((trend) => trend.transactionCount > 0);
 
@@ -64,7 +71,7 @@ export function summariseTrends(
       averageMonthly: null,
       highest: null,
       lowest: null,
-      sentences: ['There is not enough complete-month spending yet to show a trend.'],
+      sentences: [copy.notEnough],
     };
   }
 
@@ -77,12 +84,15 @@ export function summariseTrends(
     trend.totalSpent < min.totalSpent ? trend : min,
   );
 
-  const sentences = [
-    `You spent an average of ${formatCurrency(averageMonthly)} per month over ${withSpending.length} complete ${withSpending.length === 1 ? 'month' : 'months'}.`,
-  ];
+  const sentences = [copy.average(formatCurrency(averageMonthly), withSpending.length)];
   if (withSpending.length > 1) {
     sentences.push(
-      `Your highest month was ${formatMonthLong(highest.month)} (${formatCurrency(highest.totalSpent)}) and your lowest was ${formatMonthLong(lowest.month)} (${formatCurrency(lowest.totalSpent)}).`,
+      copy.range(
+        formatMonthLong(highest.month),
+        formatCurrency(highest.totalSpent),
+        formatMonthLong(lowest.month),
+        formatCurrency(lowest.totalSpent),
+      ),
     );
   }
 
@@ -91,10 +101,15 @@ export function summariseTrends(
   if (latest && beforeLatest && beforeLatest.totalSpent > 0) {
     const change = ((latest.totalSpent - beforeLatest.totalSpent) / beforeLatest.totalSpent) * 100;
     const rounded = Math.round(change * 10) / 10;
+    const latestLabel = formatMonthLong(latest.month);
+    const beforeLabel = formatMonthLong(beforeLatest.month);
+    const percent = formatPercent(Math.abs(rounded));
     sentences.push(
       rounded === 0
-        ? `${formatMonthLong(latest.month)} was in line with ${formatMonthLong(beforeLatest.month)}.`
-        : `${formatMonthLong(latest.month)} was ${formatPercent(Math.abs(rounded))} ${rounded > 0 ? 'higher' : 'lower'} than ${formatMonthLong(beforeLatest.month)}.`,
+        ? copy.inLine(latestLabel, beforeLabel)
+        : rounded > 0
+          ? copy.higher(latestLabel, percent, beforeLabel)
+          : copy.lower(latestLabel, percent, beforeLabel),
     );
   }
 

@@ -1,3 +1,4 @@
+import { en } from '../i18n/en';
 import type {
   ApiErrorBody,
   ApiMeta,
@@ -53,11 +54,11 @@ async function request<T>(
     });
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') throw error;
-    throw new ApiError(0, 'We could not reach the server. Check your connection and try again.');
+    throw new ApiError(0, en.states.networkError);
   }
 
   if (!response.ok) {
-    let message = 'Something went wrong while loading this information.';
+    let message = en.states.genericError;
     let code: string | undefined;
     try {
       const body = (await response.json()) as Partial<ApiErrorBody>;

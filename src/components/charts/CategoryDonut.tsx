@@ -1,24 +1,27 @@
 import { Box, Stack, Typography, useMediaQuery } from '@mui/material';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import type { SpendingByCategory } from '../../../shared/types';
+import { useMessages } from '../../i18n/I18nProvider';
+import type { Messages } from '../../i18n/en';
 import { tokens } from '../../theme/theme';
 import { formatCurrency, formatPercent } from '../../utils/format';
 
 /* Code-split from the Categories view so the chart library loads after the list. */
 
-function chartSummary(data: SpendingByCategory): string {
+function chartSummary(data: SpendingByCategory, m: Messages): string {
   const parts = data.categories.map(
     (category) => `${category.name} ${formatPercent(category.percentage)}`,
   );
-  return `Donut chart of spending by category: ${parts.join(', ')}.`;
+  return m.categories.chartSummary(parts.join(', '));
 }
 
 export default function CategoryDonut({ data }: { data: SpendingByCategory }) {
+  const m = useMessages();
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
   return (
     <Box
       role="img"
-      aria-label={chartSummary(data)}
+      aria-label={chartSummary(data, m)}
       sx={{ position: 'relative', width: '100%', maxWidth: 260, height: 260, mx: 'auto' }}
     >
       {/* The labelled wrapper and the category list are the accessible equivalent. */}
@@ -64,7 +67,7 @@ export default function CategoryDonut({ data }: { data: SpendingByCategory }) {
           pointerEvents: 'none',
         }}
       >
-        <Typography variant="caption">Total spent</Typography>
+        <Typography variant="caption">{m.categories.totalSpent}</Typography>
         <Typography sx={{ fontWeight: 650, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
           {formatCurrency(data.totalAmount)}
         </Typography>

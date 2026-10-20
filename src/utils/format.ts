@@ -1,7 +1,5 @@
 import { APP_TIMEZONE } from '../../shared/dates';
-import type { Period, TransactionSort } from '../../shared/types';
-
-const LOCALE = 'en-ZA';
+import { LOCALE } from '../i18n/locale';
 
 const currencyFormatter = new Intl.NumberFormat(LOCALE, {
   style: 'currency',
@@ -123,32 +121,3 @@ export function formatMonthShort(monthKey: string): string {
 export function formatMonthLong(monthKey: string): string {
   return monthLong.format(new Date(`${monthKey}-15T00:00:00Z`));
 }
-
-export const PERIOD_LABEL: Record<Period, string> = {
-  '7d': 'last 7 days',
-  '30d': 'last 30 days',
-  '90d': 'last 90 days',
-  '1y': 'last year',
-};
-
-/** Basis for comparison copy, e.g. "the previous 30 days". */
-export const PREVIOUS_PERIOD_LABEL: Record<Period, string> = {
-  '7d': 'the previous 7 days',
-  '30d': 'the previous 30 days',
-  '90d': 'the previous 90 days',
-  '1y': 'the year before',
-};
-
-export const PERIOD_SHORT_LABEL: Record<Period, string> = {
-  '7d': '7 days',
-  '30d': '30 days',
-  '90d': '90 days',
-  '1y': '1 year',
-};
-
-export const SORT_LABELS: Record<TransactionSort, string> = {
-  date_desc: 'Newest first',
-  date_asc: 'Oldest first',
-  amount_desc: 'Highest amount',
-  amount_asc: 'Lowest amount',
-};

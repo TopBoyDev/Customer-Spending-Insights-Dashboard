@@ -1,6 +1,6 @@
-import { Alert, Button, Container } from '@mui/material';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { reportError } from '../../services/error-reporter';
+import { ErrorFallback } from './ErrorFallback';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -21,20 +21,6 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBound
 
   override render() {
     if (!this.state.hasError) return this.props.children;
-    return (
-      <Container maxWidth="sm" sx={{ py: 8 }}>
-        <Alert
-          severity="error"
-          action={
-            <Button color="inherit" size="small" onClick={() => window.location.reload()}>
-              Reload
-            </Button>
-          }
-        >
-          Something unexpected went wrong while showing your spending insights. Reloading the page
-          usually fixes this.
-        </Alert>
-      </Container>
-    );
+    return <ErrorFallback />;
   }
 }

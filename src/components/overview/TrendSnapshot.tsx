@@ -4,6 +4,7 @@ import { toMonthKey } from '../../../shared/dates';
 import { useApiMeta, useSpendingTrends } from '../../hooks/useInsightsQueries';
 import { formatCurrency, formatMonthShort } from '../../utils/format';
 import { summariseTrends } from '../../utils/insights';
+import { useMessages } from '../../i18n/I18nProvider';
 import { SectionCard } from '../common/SectionCard';
 import { EmptyState, SectionState } from '../states/SectionState';
 
@@ -12,26 +13,27 @@ const SNAPSHOT_MONTHS = 6;
 const MiniTrendChart = lazy(() => import('./MiniTrendChart'));
 
 export function TrendSnapshot({ onMore }: { onMore: () => void }) {
+  const m = useMessages();
   const query = useSpendingTrends(SNAPSHOT_MONTHS);
   const meta = useApiMeta();
   const currentMonth = meta.data ? toMonthKey(meta.data.dataAsOf) : undefined;
 
   return (
     <SectionCard
-      title="Monthly spending"
-      subtitle={`Last ${SNAPSHOT_MONTHS} months`}
-      more={{ label: 'trends', onClick: onMore }}
+      title={m.trends.snapshotTitle}
+      subtitle={m.trends.lastMonths(SNAPSHOT_MONTHS)}
+      more={{ label: m.trends.viewAll, onClick: onMore }}
     >
       <SectionState
         query={query}
-        loadingLabel="Loading monthly spending"
+        loadingLabel={m.trends.snapshotLoading}
         skeleton={<Skeleton variant="rounded" height={180} />}
-        errorTitle="Monthly spending could not be loaded"
+        errorTitle={m.trends.snapshotError}
         isEmpty={(data) => data.trends.every((trend) => trend.transactionCount === 0)}
-        empty={<EmptyState title="No spending in these months" />}
+        empty={<EmptyState title={m.trends.empty} />}
       >
         {(data) => {
-          const insight = summariseTrends(data.trends, currentMonth);
+          const insight = summariseTrends(data.trends, currentMonth, m);
           const points = data.trends.map((trend) => ({
             ...trend,
             label: formatMonthShort(trend.month),
@@ -42,7 +44,7 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
               {insight.averageMonthly !== null && (
                 <Box>
                   <Typography variant="caption" component="p">
-                    Monthly average
+                    {m.trends.monthlyAverage}
                   </Typography>
                   <Typography
                     sx={{ fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.01em' }}

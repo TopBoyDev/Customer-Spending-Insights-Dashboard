@@ -3,7 +3,8 @@ import type { CategoryName } from '../shared/categories';
 import { AppShell } from './components/layout/AppShell';
 import { PAGE_HEADING_ID } from './components/layout/PageHeader';
 import { hrefForView, useDashboardFilters } from './hooks/useDashboardFilters';
-import { VIEW_LABEL, type View } from './navigation';
+import { useMessages } from './i18n/I18nProvider';
+import { type View } from './navigation';
 import { focusWhenAvailable } from './utils/focus';
 import { OverviewView } from './views/OverviewView';
 import { ViewSkeleton } from './views/ViewSkeleton';
@@ -23,6 +24,7 @@ const BudgetsView = lazy(() =>
 );
 
 export function App() {
+  const m = useMessages();
   const { filters, update } = useDashboardFilters();
   const { view } = filters;
 
@@ -36,13 +38,13 @@ export function App() {
   // Behave like a page change: title, scroll position and focus follow the active tab.
   const previousView = useRef(view);
   useEffect(() => {
-    document.title = `${VIEW_LABEL[view]} · Spending Insights`;
+    document.title = `${m.views[view]} · ${m.app.name}`;
     if (previousView.current === view) return;
     previousView.current = view;
     window.scrollTo({ top: 0 });
     // Lazily loaded views mount a moment later, so wait for the new heading.
     return focusWhenAvailable(PAGE_HEADING_ID);
-  }, [view]);
+  }, [view, m]);
 
   const setPeriod = (period: typeof filters.period) => update({ period });
 

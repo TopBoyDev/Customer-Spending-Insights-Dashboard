@@ -1,20 +1,15 @@
 import { Stack, Tooltip, Typography } from '@mui/material';
 import type { GoalStatus } from '../../../shared/types';
 import { tokens } from '../../theme/theme';
-import { GOAL_STATUS } from '../../utils/goals';
+import { useMessages } from '../../i18n/I18nProvider';
+import { GOAL_STATUS_COLOR } from '../../utils/goals';
 import { CategoryDot } from './CategoryDot';
-
-const STATUS_HELP: Record<GoalStatus, string> = {
-  on_track: 'Less than 80% of the monthly budget used',
-  warning: '80% to 100% of the monthly budget used',
-  exceeded: 'More than the monthly budget has been spent',
-};
 
 /** Status in words with a small coloured marker; colour never carries meaning alone. */
 export function StatusLabel({ status }: { status: GoalStatus }) {
-  const { label, color } = GOAL_STATUS[status];
+  const m = useMessages();
   return (
-    <Tooltip title={STATUS_HELP[status]} describeChild>
+    <Tooltip title={m.budgets.statusHelp[status]} describeChild>
       <Stack
         direction="row"
         spacing={0.75}
@@ -28,9 +23,9 @@ export function StatusLabel({ status }: { status: GoalStatus }) {
           '&:focus-visible': { outline: `2px solid ${tokens.color.accentLight}`, outlineOffset: 2 },
         }}
       >
-        <CategoryDot color={color} size={6} />
+        <CategoryDot color={GOAL_STATUS_COLOR[status]} size={6} />
         <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary' }}>
-          {label}
+          {m.budgets.status[status]}
         </Typography>
       </Stack>
     </Tooltip>
