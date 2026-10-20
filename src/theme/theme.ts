@@ -1,18 +1,18 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
 /**
- * Design tokens. A neutral, mostly monochrome system with a single blue accent
- * reserved for interaction (selected tabs, links, focus) and the primary data
- * series. Semantic colours appear only as small status markers. Category
+ * Design tokens. A neutral, mostly monochrome system with a single accent
+ * (Capitec blue) reserved for the brand mark, navigation, focus and the
+ * primary data series. Semantic colours appear only as small status markers. Category
  * colours from the API are used solely for chart marks and small dots.
  *
  * All text colours meet WCAG 2.2 AA (4.5:1) against both surfaces.
  */
 export const tokens = {
   color: {
-    accent: '#1F4FD1',
-    accentDark: '#173DA6',
-    accentSoft: '#EEF2FD',
+    accent: '#004973',
+    accentDark: '#00344F',
+    accentSoft: '#E8F0F5',
     background: '#F6F7F9',
     surface: '#FFFFFF',
     surfaceMuted: '#F3F4F6',
@@ -24,7 +24,7 @@ export const tokens = {
     success: '#15803D',
     warning: '#B45309',
     error: '#B42318',
-    chartMuted: '#C7D2F4',
+    chartMuted: '#B9CEDB',
     track: '#EDEFF2',
   },
   radius: { card: 16, control: 10, pill: 999 },
@@ -140,26 +140,6 @@ export const theme = createTheme({
             boxShadow: '0 1px 2px rgba(17, 24, 39, 0.08), 0 0 0 1px rgba(17, 24, 39, 0.04)',
           },
         },
-      },
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          minHeight: 48,
-          minWidth: 0,
-          paddingInline: 4,
-          marginRight: 24,
-          fontWeight: 600,
-          fontSize: '0.875rem',
-          color: color.textSecondary,
-          '&.Mui-selected': { color: color.textPrimary },
-        },
-      },
-    },
-    MuiTabs: {
-      styleOverrides: {
-        root: { minHeight: 48 },
-        indicator: { height: 2, borderRadius: 2, backgroundColor: color.textPrimary },
       },
     },
     MuiBottomNavigationAction: {

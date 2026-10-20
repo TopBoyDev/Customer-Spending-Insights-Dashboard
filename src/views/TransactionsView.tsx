@@ -181,9 +181,9 @@ export function TransactionsPanel({
                     sx={{
                       alignSelf: 'center',
                       '& .MuiPaginationItem-root.Mui-selected': {
-                        bgcolor: 'text.primary',
+                        bgcolor: 'primary.main',
                         color: 'common.white',
-                        '&:hover, &.Mui-focusVisible': { bgcolor: 'text.primary' },
+                        '&:hover, &.Mui-focusVisible': { bgcolor: 'primary.main' },
                       },
                     }}
                     aria-label="Transaction pages"
@@ -207,7 +207,6 @@ export function TransactionsView({ onPeriodChange, ...panel }: TransactionsViewP
     <>
       <PageHeader
         title="Transactions"
-        description={`Everything you spent in the ${PERIOD_LABEL[panel.period]}.`}
         actions={<PeriodSelector value={panel.period} onChange={onPeriodChange} />}
       />
       <TransactionsPanel {...panel} />

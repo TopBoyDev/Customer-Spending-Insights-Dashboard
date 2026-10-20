@@ -25,14 +25,17 @@ export function describeSpendingChange(change: number | null, period: Period): C
     : { direction: 'down', text: `${amount} less than ${basis}` };
 }
 
-export function describeCountChange(change: number | null, period: Period): ChangeDescription {
-  const basis = PREVIOUS_PERIOD_LABEL[period];
-  if (change === null) return { direction: 'none', text: `None in ${basis}` };
-  if (change === 0) return { direction: 'flat', text: `Same as ${basis}` };
+/**
+ * Compact wording for secondary metrics. The comparison basis is already
+ * spelled out once next to the headline total, so it is not repeated here.
+ */
+export function describeCountChange(change: number | null): ChangeDescription {
+  if (change === null) return { direction: 'none', text: 'Nothing to compare' };
+  if (change === 0) return { direction: 'flat', text: 'No change' };
   const amount = formatPercent(Math.abs(change));
   return change > 0
-    ? { direction: 'up', text: `${amount} more than ${basis}` }
-    : { direction: 'down', text: `${amount} fewer than ${basis}` };
+    ? { direction: 'up', text: `${amount} more` }
+    : { direction: 'down', text: `${amount} fewer` };
 }
 
 export interface TrendInsight {

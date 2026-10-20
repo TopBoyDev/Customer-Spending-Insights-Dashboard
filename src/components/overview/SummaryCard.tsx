@@ -95,7 +95,7 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
           value={formatNumber(summary.transactionCount)}
           supporting={
             <ChangeIndicator
-              change={describeCountChange(summary.comparedToPrevious.transactionChange, period)}
+              change={describeCountChange(summary.comparedToPrevious.transactionChange)}
             />
           }
         />

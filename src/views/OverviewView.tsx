@@ -7,7 +7,6 @@ import { CategorySnapshot } from '../components/overview/CategorySnapshot';
 import { RecentTransactions } from '../components/overview/RecentTransactions';
 import { SummaryCard } from '../components/overview/SummaryCard';
 import { TrendSnapshot } from '../components/overview/TrendSnapshot';
-import { useCustomerProfile } from '../hooks/useInsightsQueries';
 import type { View } from '../navigation';
 
 interface OverviewViewProps {
@@ -18,16 +17,10 @@ interface OverviewViewProps {
 
 /** At-a-glance dashboard. Each card summarises one area and links to its full tab. */
 export function OverviewView({ period, onPeriodChange, onNavigate }: OverviewViewProps) {
-  const profile = useCustomerProfile();
-  const firstName = profile.data?.name.split(' ')[0];
-
   return (
     <>
       <PageHeader
         title="Overview"
-        description={
-          firstName ? `Welcome back, ${firstName}. Here is where your money went.` : undefined
-        }
         actions={<PeriodSelector value={period} onChange={onPeriodChange} />}
       />
       <Grid container spacing={{ xs: 2, md: 2.5 }}>

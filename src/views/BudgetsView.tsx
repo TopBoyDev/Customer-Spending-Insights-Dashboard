@@ -139,11 +139,7 @@ export function BudgetsView() {
       <PageHeader
         title="Budgets"
         description={
-          <>
-            {month} to date
-            {days !== undefined && ` · ${days} ${days === 1 ? 'day' : 'days'} left in the month`}.
-            Budgets track the calendar month, regardless of the period selected elsewhere.
-          </>
+          days === undefined ? month : `${month} · ${days} ${days === 1 ? 'day' : 'days'} left`
         }
       />
       <SectionState

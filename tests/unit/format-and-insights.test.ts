@@ -49,7 +49,8 @@ describe('change descriptions', () => {
     });
     expect(describeSpendingChange(-3.2, '7d').text).toBe('3,2% less than the previous 7 days');
     expect(describeSpendingChange(0, '1y').text).toBe('The same as the year before');
-    expect(describeCountChange(-20, '7d').text).toBe('20% fewer than the previous 7 days');
+    expect(describeCountChange(-20).text).toBe('20% fewer');
+    expect(describeCountChange(null).text).toBe('Nothing to compare');
   });
 
   it('explains when there is nothing to compare with', () => {

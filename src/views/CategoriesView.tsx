@@ -172,7 +172,6 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
     <>
       <PageHeader
         title="Categories"
-        description={range ? `How your spending splits across categories, ${range}.` : undefined}
         actions={<PeriodSelector value={period} onChange={onPeriodChange} />}
       />
       <SectionState
@@ -199,28 +198,17 @@ export function CategoriesView({ period, onPeriodChange, onSelectCategory }: Cat
       >
         {(data) => {
           const maxPercentage = Math.max(0, ...data.categories.map((c) => c.percentage));
-          const top = data.categories[0];
           return (
             <Grid container spacing={{ xs: 2, md: 2.5 }}>
               <Grid size={{ xs: 12, md: 5 }}>
                 <SectionCard title="Share of spending" subtitle={range}>
                   <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
                     <CategoryDonut data={data} />
-                    {top && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ textAlign: 'center' }}
-                      >
-                        {top.name} was your largest category at {formatPercent(top.percentage)} of
-                        spending.
-                      </Typography>
-                    )}
                   </Stack>
                 </SectionCard>
               </Grid>
               <Grid size={{ xs: 12, md: 7 }}>
-                <SectionCard title="Breakdown" subtitle="Select a category to see its transactions">
+                <SectionCard title="Breakdown">
                   <Box component="ul" sx={{ m: 0, p: 0, mx: -1.5, listStyle: 'none' }}>
                     {data.categories.map((category) => (
                       <li key={category.name}>

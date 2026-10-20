@@ -67,7 +67,7 @@ The first time you run end-to-end tests, install the browser with `npx playwrigh
 - **Data consistency:** for every period, summary total = category total = transaction count, percentages sum to about 100 %, and the dataset is identical on every generation.
 - **API:** every endpoint's response shape, defaults, filtering, sorting and pagination; 400s for each invalid parameter; 404s for unknown customers and routes; no stack traces leaked; `Cache-Control: no-store` and security headers.
 - **Components:** loading, success, error with retry (which really re-requests), and empty states; labelled filter controls; category rows; accessible goal progress; one failing endpoint not breaking other cards; tab navigation updating URL, title and focus; and category selection opening filtered transactions. Tests render against the real mock API on an ephemeral port, with per-test overrides for failures.
-- **End-to-end:** first load with no console errors; every tab reachable from the navigation, with back-button support; Overview cards open their tabs; period change updates figures and URL across tabs; category → filtered transactions → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; **no horizontal scroll and an axe-core WCAG 2.2 AA scan with zero serious/critical violations on every tab**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow through the tab list.
+- **End-to-end:** first load with no console errors; every tab reachable from the navigation, with back-button support; Overview cards open their tabs; period change updates figures and URL across tabs; category → filtered transactions → sort → paginate → refresh restores the view; invalid URL parameters fall back to defaults; **no horizontal scroll and an axe-core WCAG 2.2 AA scan with zero serious/critical violations on every tab**; API failure and recovery; empty results with "Clear filters"; a keyboard-only flow through the sidebar menu.
 
 CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above on every push and pull request, then builds the Docker image and smoke-tests the running container.
 
@@ -75,7 +75,7 @@ CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs all of the above 
 
 ## Features
 
-The app is organised like a modern banking app: an **Overview** dashboard plus four focused tabs (**Categories, Trends, Transactions, Budgets**). Each Overview card summarises one area and links to its tab, so you see the headline numbers at a glance and open the detail only when you want it. Tabs sit under the top bar on tablet and desktop, and become a bottom tab bar on phones.
+The app is organised like a modern banking app: an **Overview** dashboard plus four focused tabs (**Categories, Trends, Transactions, Budgets**). Each Overview card summarises one area and links to its tab, so you see the headline numbers at a glance and open the detail only when you want it. On desktop the sections are a fixed sidebar menu; on phones they become a bottom tab bar.
 
 - **Overview.** Total spent for the selected period as the hero figure, with a neutral comparison to the previous equal-length period, plus transaction count, average transaction and top category. Below it: where the money went (one proportion bar and a legend), monthly budgets at a glance, a six-month mini trend and the five most recent transactions.
 - **Global period filter** (7 days / 30 days / 90 days / 1 year) shared by Overview, Categories and Transactions, so the numbers always describe the same date range.
@@ -88,10 +88,10 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 
 ## Visual design
 
-- **Restrained colour.** A neutral grey and white base, near-black ink for text and progress bars, and a single blue accent reserved for the primary data series, the selected bottom-bar item and focus rings.
+- **Restrained colour.** A neutral grey and white base, near-black ink for text and progress bars, and a single accent, Capitec blue (`#004973`), reserved for the logo, the active menu item, focus rings and the primary data series.
 - **Category colours** (from the API contract) appear only as small dots, chart slices and proportion bars, always next to the category name. Category icons are monochrome.
 - **Status colour** is limited to a small dot beside the status word. The only full-colour warning is a red progress bar when a budget is exceeded.
-- **Typography and layout.** Self-hosted Inter (no third-party font requests), tabular numerals so amounts line up, hairline-bordered cards with generous spacing, and one clear hero number per screen.
+- **Typography and layout.** Self-hosted Inter (no third-party font requests), tabular numerals so amounts line up, hairline-bordered cards with generous spacing, one clear hero number per screen, and minimal copy: labels and numbers rather than explanatory sentences.
 
 ## Architecture
 
@@ -107,7 +107,7 @@ The app is organised like a modern banking app: an **Overview** dashboard plus f
 │   └── index.ts            Config, listen, graceful shutdown
 ├── src/
 │   ├── views/              One component per tab: Overview, Categories, Trends, Transactions, Budgets
-│   ├── components/         layout/ (app shell, tabs, page header), overview/ (summary cards), transactions/, states/, common/
+│   ├── components/         layout/ (app shell: sidebar, mobile bars, page header), overview/ (summary cards), transactions/, states/, common/
 │   ├── navigation.ts       Tab definitions
 │   ├── hooks/              useDashboardFilters (tab + filter URL state), useInsightsQueries (TanStack Query)
 │   ├── services/           Typed fetch client with ApiError; QueryClient defaults
@@ -147,7 +147,7 @@ Only customer `12345` exists. Other IDs return 404.
 ## UX and accessibility
 
 - Mobile-first layout, checked from 360 px to 1440 px with no horizontal scrolling on any tab.
-- Tab changes behave like page changes: the document title updates, the page scrolls to the top, and focus moves to the new tab's heading, so screen-reader and keyboard users know where they are. The desktop tab list supports arrow-key navigation.
+- Tab changes behave like page changes: the document title updates, the page scrolls to the top, and focus moves to the new tab's heading, so screen-reader and keyboard users know where they are. The sidebar menu items are links marked with `aria-current`.
 - Plain-language copy with the comparison basis spelled out ("3,8% more than the previous 30 days"). Increases are not coloured red, because spending more is not automatically bad.
 - Rand formatted with `Intl.NumberFormat('en-ZA', { currency: 'ZAR' })` everywhere. Expenses are shown as debits (−R 262,38).
 - Semantic landmarks and headings, labelled `section` regions, a skip link, visible focus rings, labelled form controls, and announced loading and result-count status.

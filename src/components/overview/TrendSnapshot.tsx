@@ -76,9 +76,6 @@ export function TrendSnapshot({ onMore }: { onMore: () => void }) {
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
-              <Typography variant="caption" component="p">
-                {insight.sentences.at(-1)}
-              </Typography>
             </Stack>
           );
         }}

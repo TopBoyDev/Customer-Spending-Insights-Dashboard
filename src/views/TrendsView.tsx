@@ -229,7 +229,6 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
     <>
       <PageHeader
         title="Trends"
-        description={`Month-by-month spending over the last ${months} months.`}
         actions={
           <ToggleButtonGroup
             value={months}
@@ -301,9 +300,7 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
                 <SectionCard
                   title="Monthly spending"
                   subtitle={
-                    currentMonth
-                      ? `${formatMonthLong(currentMonth)} is in progress (lighter bar) and excluded from the average`
-                      : undefined
+                    currentMonth ? `${formatMonthShort(currentMonth)} is month to date` : undefined
                   }
                   action={
                     <Button
@@ -321,16 +318,6 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
                 >
                   <Stack spacing={2}>
                     <TrendChart points={points} averageMonthly={insight.averageMonthly} />
-                    <Box
-                      component="ul"
-                      sx={{ m: 0, pl: 2.5, color: 'text.secondary', '& li + li': { mt: 0.5 } }}
-                    >
-                      {insight.sentences.map((sentence) => (
-                        <Typography component="li" variant="body2" key={sentence}>
-                          {sentence}
-                        </Typography>
-                      ))}
-                    </Box>
                     <Collapse in={showTable} unmountOnExit>
                       <TrendTable points={points} id={tableId} />
                     </Collapse>

@@ -27,7 +27,7 @@ export function CategorySnapshot({ period, onMore }: { period: Period; onMore: (
   const query = useSpendingCategories(period);
   return (
     <SectionCard
-      title="Where your money went"
+      title="Categories"
       subtitle={
         query.data
           ? formatDateRange(query.data.dateRange.startDate, query.data.dateRange.endDate)

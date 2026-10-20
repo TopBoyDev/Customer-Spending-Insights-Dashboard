@@ -199,7 +199,7 @@ test('an empty result offers to clear filters', async ({ page }) => {
 });
 
 test('core controls work with the keyboard alone', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'Keyboard flow is covered on the desktop layout');
+  test.skip(isMobile, 'The keyboard flow targets the desktop sidebar');
   await page.goto('/');
   await expect(summary(page).getByText(rand('R 19 004,60'))).toBeVisible();
 
@@ -207,12 +207,13 @@ test('core controls work with the keyboard alone', async ({ page, isMobile }) =>
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
 
-  // Next is the tab list: arrow keys move between tabs, Enter opens one.
+  // Next is the sidebar menu: Tab moves through the sections, Enter opens one.
+  const nav = page.getByRole('navigation', { name: 'Dashboard sections' });
   await page.keyboard.press('Tab');
-  await expect(page.getByRole('tab', { name: 'Overview' })).toBeFocused();
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByRole('tab', { name: 'Trends' })).toBeFocused();
+  await expect(nav.getByRole('link', { name: 'Overview' })).toBeFocused();
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Tab');
+  await expect(nav.getByRole('link', { name: 'Trends' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(heading(page, 'Trends')).toBeFocused();
   await expect(page).toHaveURL(/view=trends/);
@@ -221,5 +222,8 @@ test('core controls work with the keyboard alone', async ({ page, isMobile }) =>
   await page.getByRole('button', { name: '24 months' }).focus();
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/months=24/);
-  await expect(page.getByText('Month-by-month spending over the last 24 months.')).toBeVisible();
+  await expect(page.getByRole('button', { name: '24 months' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
 });
