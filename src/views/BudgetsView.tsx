@@ -82,6 +82,7 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
   const budget = goals.reduce((sum, goal) => sum + goal.monthlyBudget, 0);
   const spent = goals.reduce((sum, goal) => sum + goal.currentSpent, 0);
   const remaining = budget - spent;
+  const daysRemaining = goals[0]?.daysRemaining;
   return (
     <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
       <Grid size={{ xs: 12, sm: 4 }}>
@@ -89,16 +90,27 @@ function Totals({ goals }: { goals: SpendingGoal[] }) {
           icon={<AccountBalanceWalletOutlined />}
           label="Total budgeted"
           value={formatCurrency(budget)}
+          footnote={`${goals.length} ${goals.length === 1 ? 'category' : 'categories'}`}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
-        <StatCard icon={<PaymentsOutlined />} label="Spent so far" value={formatCurrency(spent)} />
+        <StatCard
+          icon={<PaymentsOutlined />}
+          label="Spent so far"
+          value={formatCurrency(spent)}
+          footnote={`${formatPercent(budget === 0 ? 0 : (spent / budget) * 100)} of budget`}
+        />
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
         <StatCard
           icon={<SavingsOutlined />}
           label={remaining >= 0 ? 'Remaining' : 'Over budget'}
           value={formatCurrency(Math.abs(remaining))}
+          footnote={
+            daysRemaining === undefined
+              ? undefined
+              : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'} left in the month`
+          }
         />
       </Grid>
     </Grid>

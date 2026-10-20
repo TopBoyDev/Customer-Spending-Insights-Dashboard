@@ -6,9 +6,9 @@ import ReceiptLongOutlined from '@mui/icons-material/ReceiptLongOutlined';
 import { Box, Card, Grid2 as Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { CATEGORY_BY_NAME } from '../../../shared/categories';
 import type { Period, SpendingSummary } from '../../../shared/types';
-import { useSpendingSummary } from '../../hooks/useInsightsQueries';
+import { useSpendingCategories, useSpendingSummary } from '../../hooks/useInsightsQueries';
 import { tokens } from '../../theme/theme';
-import { formatCurrency, formatNumber, PERIOD_LABEL } from '../../utils/format';
+import { formatCurrency, formatNumber, formatPercent, PERIOD_LABEL } from '../../utils/format';
 import {
   describeCountChange,
   describeSpendingChange,
@@ -16,8 +16,7 @@ import {
 } from '../../utils/insights';
 import { CategoryDot } from '../common/CategoryDot';
 import { CategoryIcon } from '../common/CategoryIcon';
-import { StatCard } from '../common/StatCard';
-import { ChangeIndicator } from '../spending/ChangeIndicator';
+import { ChangeBadge, StatCard } from '../common/StatCard';
 import { EmptyState, SectionState } from '../states/SectionState';
 
 const CHANGE_ICON = {
@@ -98,6 +97,10 @@ function HeroCard({ summary }: { summary: SpendingSummary }) {
 
 function SummaryContent({ summary }: { summary: SpendingSummary }) {
   const topCategory = summary.topCategory ? CATEGORY_BY_NAME[summary.topCategory] : null;
+  const transactionChange = summary.comparedToPrevious.transactionChange;
+  // Shares the cached categories query used elsewhere on the overview.
+  const categories = useSpendingCategories(summary.period);
+  const topShare = categories.data?.categories.find((c) => c.name === summary.topCategory);
   return (
     <Grid container spacing={{ xs: 2, md: 3 }}>
       <Grid size={{ xs: 12, lg: 4 }}>
@@ -108,23 +111,28 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
           icon={<ReceiptLongOutlined />}
           label="Transactions"
           value={formatNumber(summary.transactionCount)}
-          supporting={
-            <ChangeIndicator
-              change={describeCountChange(summary.comparedToPrevious.transactionChange)}
-            />
+          footnote="vs prior period"
+          badge={
+            transactionChange !== null && (
+              <ChangeBadge
+                change={transactionChange}
+                label={describeCountChange(transactionChange).text}
+              />
+            )
           }
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4, lg: 8 / 3 }}>
         <StatCard
           icon={<PaymentsOutlined />}
-          label="Average transaction"
+          label="Avg. transaction"
           value={formatCurrency(summary.averageTransaction)}
+          footnote={`${formatNumber(summary.transactionCount)} transactions`}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 4, lg: 8 / 3 }}>
         <StatCard
-          icon={topCategory ? <CategoryIcon icon={topCategory.icon} size={21} bare /> : null}
+          icon={topCategory ? <CategoryIcon icon={topCategory.icon} size={19} bare /> : null}
           label="Top category"
           value={
             topCategory ? (
@@ -135,6 +143,11 @@ function SummaryContent({ summary }: { summary: SpendingSummary }) {
             ) : (
               'None'
             )
+          }
+          footnote={
+            topShare
+              ? `${formatCurrency(topShare.amount)} · ${formatPercent(topShare.percentage)} of spend`
+              : undefined
           }
         />
       </Grid>

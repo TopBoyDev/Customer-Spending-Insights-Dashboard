@@ -265,7 +265,7 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
                   value={
                     insight.averageMonthly === null ? '—' : formatCurrency(insight.averageMonthly)
                   }
-                  supporting={`${insight.completeMonths.length} complete months`}
+                  footnote={`Over ${insight.completeMonths.length} complete months`}
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
@@ -273,7 +273,7 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
                   icon={<TrendingUpRounded />}
                   label="Highest month"
                   value={insight.highest ? formatCurrency(insight.highest.totalSpent) : '—'}
-                  supporting={insight.highest ? formatMonthLong(insight.highest.month) : undefined}
+                  footnote={insight.highest ? formatMonthLong(insight.highest.month) : undefined}
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
@@ -281,7 +281,7 @@ export function TrendsView({ months, onMonthsChange }: TrendsViewProps) {
                   icon={<TrendingDownRounded />}
                   label="Lowest month"
                   value={insight.lowest ? formatCurrency(insight.lowest.totalSpent) : '—'}
-                  supporting={insight.lowest ? formatMonthLong(insight.lowest.month) : undefined}
+                  footnote={insight.lowest ? formatMonthLong(insight.lowest.month) : undefined}
                 />
               </Grid>
               <Grid size={12}>
